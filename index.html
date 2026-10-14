@@ -183,6 +183,13 @@ select,input[type=date],input[type=text]{font:inherit;color:var(--ink);backgroun
 body.rp-open{overflow:hidden}
 @media print{ body.rp-open>*:not(#report){display:none!important} .report{position:static;padding:0;overflow:visible} .noprint{display:none!important} body.rp-open{overflow:visible;background:#fff;padding:0!important;margin:0!important;min-height:0!important} html{height:auto!important} .rp tr{break-inside:avoid} }
 @media (max-width:520px){.rp th,.rp td{padding:4px 3px;font-size:12px}.rp th{font-size:10px}}
+.fu{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+.fu textarea{flex:1;min-width:0}
+.fu-turn{display:grid;gap:6px}
+.fu-me{justify-self:end;max-width:85%;margin:0;background:var(--accent);color:#fff;padding:7px 11px;border-radius:14px 14px 4px 14px;font-size:15px}
+.fu-coach{justify-self:start;max-width:100%;background:var(--sunk);padding:8px 11px;border-radius:14px 14px 14px 4px;display:grid;gap:6px}
+.fu .chips{display:flex;gap:6px;flex-wrap:wrap}
+.fu .chip:disabled{opacity:.5}
 </style>
 
 
@@ -790,7 +797,7 @@ function practiceView(){
     p.append(el("p",{class:"pre " + (q.k === "proc" ? "" : "mono")}, q.s));
     const d = sketchSVG(q.d); if (d) p.append(d);
     cur.claudeBox = cur.claudeBox || el("div",{class:"claude-box"});
-    if (cur.claudeBox.childNodes.length) p.append(cur.claudeBox);
+    if (cur.claudeBox.childNodes.length) { p.append(cur.claudeBox); p.append(followUpPanel()); }
     nodes.push(p);
   }
   const row = el("div",{class:"row"});
@@ -821,6 +828,50 @@ function showPre(box, x){
   const kids = [el("h3",{},"UT coach explains"), el("p",{class:"pre"}, String(x.e||"").trim())];
   const svg = sketchSVG(x.s); if (svg) kids.push(svg);
   box.replaceChildren(...kids);
+}
+/* follow-up chat about the question on screen */
+function followUpPanel(){
+  const chat = cur.chat || (cur.chat = []), busy = chat.some(t => t.busy);
+  const ta = el("textarea",{id:"fu-q", rows:"2", placeholder:"Ask anything about this question…", style:"min-height:64px", oninput:e => cur.fuDraft = e.target.value,
+    onkeydown:e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); followUp(ta.value); } }});
+  ta.value = cur.fuDraft || "";
+  const wrong = cur.chosen != null && !cur.q.o[cur.chosen][1];
+  const chips = ["Explain it more simply", "Show the math step by step", wrong ? "Why is my answer wrong?" : "When would I use this on the job?"];
+  const thread = chat.map(t => el("div",{class:"fu-turn"},
+    el("p",{class:"fu-me"}, t.q),
+    t.busy ? el("div",{class:"thinking"}, el("span",{class:"dot"}), "Thinking…")
+      : t.err ? el("p",{class:"muted",style:"margin:0"}, t.err)
+      : el("div",{class:"fu-coach"}, el("p",{class:"pre",style:"margin:0"}, t.a.text), sketchSVG(t.a.sketch) || null)));
+  return el("div",{class:"fu"},
+    el("strong",{}, "Still unsure? Ask the UT coach about this question"),
+    ...thread,
+    sample ? null : el("p",{class:"note",style:"margin:0"}, FIREBASE_CONFIG && !TEAM ? "Live answers are for team members. Sign in on the Team tab to ask your own follow-up questions." : "Live answers turn on when your team connects the UT coach. Until then, the explanation above is the coach's answer."),
+    el("div",{class:"chips"}, ...chips.map(c => el("button",{class:"chip", disabled: busy || !sample, onclick:() => followUp(c)}, c))),
+    el("div",{class:"row",style:"align-items:flex-end"}, ta, el("button",{class:"btn primary", disabled: busy || !sample, onclick:() => followUp(ta.value)}, "Ask")));
+}
+async function followUp(text){
+  text = String(text || "").trim(); if (!text || !sample || !cur) return;
+  const here = cur, {q, chosen} = here, chat = here.chat || (here.chat = []);
+  if (chat.length >= 8) { toast("That's a lot of questions on one item. Try the Ask tab for bigger topics."); return; }
+  const earlier = chat.filter(t => t.a).map(t => `Student: ${t.q}\nCoach: ${t.a.text}`).join("\n\n");
+  const seen = (here.claudeBox && here.claudeBox.querySelector("p.pre") ? here.claudeBox.querySelector("p.pre").textContent : "").trim().slice(0, 1500);
+  const turn = {q: text, busy: true}; chat.push(turn); here.fuDraft = ""; render();
+  const prompt = RULES + `
+
+You are now in a short follow-up conversation about ONE practice question the student just answered. Help them with exactly this question: answer their follow-up directly, in plain everyday language, in under 120 words. Use the numbers from this question. If they ask about something unrelated, give one sentence and steer them back to this question. Add a sketch only if it truly helps (otherwise "sketch": null).
+
+${contextFor(q, chosen)}
+
+Explanation the student already saw:
+${seen}
+${earlier ? "\nConversation so far:\n" + earlier + "\n" : ""}
+Student's follow-up: ${text}`;
+  try {
+    const r = await sample.json(prompt, {cache:false, max: 1500});
+    turn.a = {text: String(r?.explanation ?? "").replace(/\\n/g,"\n").trim() || "No answer came back. Try asking another way.", sketch: r?.sketch || null};
+  } catch(e) { turn.err = ERR[e?.code] || ERR.upstream_error; }
+  turn.busy = false;
+  if (cur === here) render();
 }
 function explain(){
   const {q, chosen} = cur; const right = q.o.find(o=>o[1])[0];
