@@ -578,6 +578,15 @@ async function signIn(){
   }
 }
 function signOut(){ clearTimeout(syncTimer); if (FB) FB.auth.signOut(); }
+let confirmRemove = null;                       // email waiting for "Remove for good?" confirmation
+async function removePerson(list, email){
+  confirmRemove = null;
+  await changeAccess(list, email, true);
+  // also clear their scores, leaderboard entry and old join request so they disappear from every view
+  const gone = TEAMDATA.members.filter(m => String(m.email || "").toLowerCase() === email);
+  for (const m of gone) for (const c of ["members","leaderboard","requests"]) { try { await FB.db.collection(c).doc(m.id).delete(); } catch(e) {} }
+  toast(`${email} was removed from the team`); render();
+}
 async function requestJoin(){
   const u = AUTH.user; if (!u) return;
   try { await FB.db.collection("requests").doc(u.uid).set({email: String(u.email||"").toLowerCase(), name: u.displayName || String(u.email||"").split("@")[0], at: Date.now(), status:"pending"}); toast("Request sent to your manager"); }
@@ -987,7 +996,8 @@ const EXAMPLE_TEAM = (() => {
 })();
 function meAsMember(){ return Object.assign({id: TEAM ? TEAM.uid : "me", name:"You", isMe:true}, memberBody()); }
 function teamMembers(){
-  if (TEAM) { const list = TEAMDATA.members.filter(m => m.id !== TEAM.uid); return list.concat([meAsMember()]); }
+  if (TEAM) { const ok = new Set(TEAMDATA.access.managers.concat(TEAMDATA.access.members));
+    const list = TEAMDATA.members.filter(m => m.id !== TEAM.uid && (!m.email || ok.has(String(m.email).toLowerCase()))); return list.concat([meAsMember()]); }
   return EXAMPLE_TEAM.concat([meAsMember()]);
 }
 function boardRows(){
@@ -1052,7 +1062,13 @@ function accessPanel(){
       email === TEAM.email ? null : el("span",{class:"note", style: joined.has(email) ? "color:var(--good)" : ""}, joined.has(email) ? " · joined" : " · not joined yet")),
     email === TEAM.email ? el("span",{class:"note"}, "you") : el("span",{class:"row",style:"gap:6px;flex-wrap:nowrap"},
       joined.has(email) ? null : btn("Invite", () => sendInvite(email, list === "managers")),
-      btn("Remove", () => changeAccess(list, email, true))));
+      confirmRemove === email
+        ? el("span",{class:"row",style:"gap:6px;flex-wrap:nowrap"}, btn("Keep", () => { confirmRemove = null; render(); }),
+            el("button",{class:"btn",style:"min-height:34px;padding:4px 10px;border-color:var(--bad);color:var(--bad)",onclick:()=>removePerson(list, email)}, "Remove"))
+        : btn("Remove", () => { confirmRemove = email; render(); })),
+    confirmRemove === email ? el("p",{class:"note",style:"margin:0;grid-column:1/-1;color:var(--bad)"}, joined.has(email)
+      ? "They'll lose access to the team, and their scores and leaderboard entry will be deleted. Their own practice stays on their phone."
+      : "They won't be able to sign in to the team. You can add them again any time.") : null);
   const reqs = TEAMDATA.requests.length ? el("div",{class:"panel",id:"team-reqs",style:"gap:6px;border-color:var(--accent)"}, el("strong",{}, `Requests to join (${TEAMDATA.requests.length})`),
     el("p",{class:"note",style:"margin:0"}, "These people signed in with Google and asked to join. Approve adds them to the team straight away."),
     ...TEAMDATA.requests.map(r => el("div",{class:"review",style:"grid-template-columns:minmax(0,1fr) auto;align-items:center"},
