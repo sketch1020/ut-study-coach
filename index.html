@@ -166,6 +166,23 @@ select,input[type=date],input[type=text]{font:inherit;color:var(--ink);backgroun
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;z-index:20;box-shadow:0 4px 16px rgb(0 0 0 / .25)}
 .xp{font-family:var(--mono);color:var(--good);font-weight:500}
 .tabdot{position:absolute;top:2px;left:calc(50% + 6px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;line-height:16px;font-family:var(--mono)}
+.report{position:fixed;inset:0;overflow:auto;z-index:60;background:#fff;color:#14181c;padding:20px 16px 40px;font-size:14px;line-height:1.45}
+.report>*{max-width:820px;margin-inline:auto}
+.rp-bar{display:flex;gap:8px;justify-content:flex-end;position:sticky;top:0;background:#fff;padding-block:6px;z-index:1}
+.report header.rp-head{position:static;background:none;padding:0 0 8px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid #14181c;padding-bottom:8px;margin-bottom:12px}
+.rp-head h1{margin:0;font-size:24px;color:#14181c}.rp-head p{margin:2px 0 0;color:#555}.rp-gen{color:#555;font-size:12px;white-space:nowrap}
+.report h2{font-size:15px;margin:18px auto 6px;color:#14181c;text-transform:uppercase;letter-spacing:.05em}
+.report table{border-collapse:collapse;width:100%;max-width:820px;display:table}
+.rp-meta th,.rp-meta td{text-align:left;padding:4px 6px;border:1px solid #ccd;font-size:13px}.rp-meta th{background:#f1f3f5;width:16%;font-weight:600}
+.rp th,.rp td{text-align:left;padding:5px 6px;border-bottom:1px solid #dde;font-size:13px;vertical-align:top}.rp th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#555}
+.rp td:nth-child(n+2):not(:last-child){font-variant-numeric:tabular-nums;white-space:nowrap}
+.rp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-block:12px}
+.rp-tiles div{border:1px solid #ccd;border-radius:8px;padding:8px 10px;display:grid}.rp-tiles b{font-size:20px;font-variant-numeric:tabular-nums}.rp-tiles span{font-size:12px;color:#555}
+.rp-note{font-size:12px;color:#555;margin-top:16px}.rp-none{color:#555}
+.rp-sign{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:36px;font-size:12px;color:#555}.rp-sign span{display:block;border-bottom:1px solid #14181c;height:36px;margin-bottom:4px}
+body.rp-open{overflow:hidden}
+@media print{ body.rp-open>*:not(#report){display:none!important} .report{position:static;padding:0;overflow:visible} .noprint{display:none!important} body.rp-open{overflow:visible;background:#fff;padding:0!important;margin:0!important;min-height:0!important} html{height:auto!important} .rp tr{break-inside:avoid} }
+@media (max-width:520px){.rp th,.rp td{padding:4px 3px;font-size:12px}.rp th{font-size:10px}}
 </style>
 
 
@@ -214,7 +231,7 @@ const SHORT = {"Wave physics":"Waves","Impedance & reflection":"Impedance","Refr
 const KEY = "ut-coach-v2";
 function fresh(){ const m={},t={},a={},c={}; for (const x of TOPICS){ m[x]=BKT.init; t[x]=0; a[x]=0; c[x]=0; }
   return {v:2, level:"II", m, t, a, c, mistakes:{}, recent:[], xp:0, wk:weekId(), wkXp:0, streak:0, lastDay:"", daily:{day:"", n:0, ok:[]},
-          screenOk:0, examBest:0, cert:"", pm:{}, procs:[], lastActive:0, seen:{}}; }
+          screenOk:0, examBest:0, cert:"", pm:{}, procs:[], lastActive:0, seen:{}, hist:{}, exams:[], lastStudy:0}; }
 let S = fresh();
 try {
   const raw = localStorage.getItem(KEY);
@@ -234,6 +251,14 @@ const readiness = () => { const ts = topicsFor(S.level); return ts.reduce((s,t)=
 
 function bkt(p, ok){ const s=BKT.slip, g=BKT.guess; const post = ok ? p*(1-s)/(p*(1-s)+(1-p)*g) : p*s/(p*s+(1-p)*(1-g)); return post + (1-post)*BKT.learn; }
 function mistakeKey(m){ const parts = m.split(". "); let k = (parts[0].length >= 30 || parts.length === 1) ? parts[0] : parts[0] + ". " + parts[1]; return k.replace(/\.$/,"").slice(0,110); }
+/* study log for the training record: per day -> {s: seconds, n: questions, c: correct, tp: {topic: [questions, correct, seconds]}} */
+function logStudy(topic, n, c, sec){
+  const d = todayStr(), h = S.hist[d] || (S.hist[d] = {s:0, n:0, c:0, tp:{}});
+  sec = Math.round(Math.max(0, sec)); h.s += sec; h.n += n; h.c += c;
+  const t = h.tp[topic] || (h.tp[topic] = [0,0,0]); t[0] += n; t[1] += c; t[2] += sec;
+  const keys = Object.keys(S.hist); if (keys.length > 420) for (const k of keys.sort().slice(0, keys.length - 420)) delete S.hist[k];
+}
+function answerSeconds(){ const now = Date.now(), gap = (now - (S.lastStudy || 0)) / 1000; S.lastStudy = now; return gap > 0 && gap <= 180 ? gap : 45; }   // time between answers, capped at 3 min; 45 s for the first one
 function addXP(n){ if (S.wk !== weekId()) { S.wk = weekId(); S.wkXp = 0; } S.xp += n; S.wkXp += n; }
 function record(q, ok, mistake){
   const before = earnedBadges();
@@ -247,6 +272,7 @@ function record(q, ok, mistake){
   }
   if (!ok && mistake) { const k = mistakeKey(mistake); S.mistakes[k] = (S.mistakes[k]||0) + 1; }
   if (ok && q.k === "screen") S.screenOk++;
+  logStudy(q.t, 1, ok ? 1 : 0, answerSeconds());
   S.lastActive = Date.now();
   addXP(ok ? 10 : 3);
   save();
@@ -480,7 +506,9 @@ Keep it simple: at most 14 items, short labels that do not overlap, everything i
 const ERR = {not_granted:"The UT coach wasn't allowed on this page. You can allow it from the page's permissions.",
   sampling_disabled:"The UT coach isn't available on this account.", rate_limited:"Too many questions at once or a usage limit was reached. Try again in a minute.",
   session_expired:"Please sign in again.", refused:"The UT coach couldn't answer that one. Try asking differently.",
-  invalid_json:"The answer came back in the wrong shape. Tap the button again.", upstream_error:"The connection dropped. Tap the button again."};
+  invalid_json:"The answer came back in the wrong shape. Tap the button again.", upstream_error:"The connection dropped. Tap the button again.",
+  not_member:"Sign in with your team account (Team tab) to ask the UT coach.", no_credit:"The UT coach is out of credit. Ask your manager to top it up.",
+  not_configured:"The UT coach isn't set up yet. Ask your manager.", pdf_too_big:"That PDF is too big. Use one under 10 MB, or split it.", bad_request:"Something was missing from the request. Try again."};
 async function askClaude(prompt, box, ctl){
   box.replaceChildren(el("h3",{},"UT coach explains"), el("div",{class:"thinking"}, el("span",{class:"dot"}), "Thinking…", el("button",{class:"btn",style:"margin-left:auto;min-height:36px;padding:4px 12px",onclick:()=>ctl.abort()},"Stop")));
   try {
@@ -504,12 +532,30 @@ let TEAM = null;                               // {uid, email, name, manager} on
 const TEAMDATA = {members:[], board:[], procs:[], requests:[], access:{managers:[], members:[]}};
 let AUTH = {state: FIREBASE_CONFIG ? "loading" : "off", user:null, msg:""};   // off | loading | signedout | denied | in
 let FB = null, unsubs = [];
+const AI_URL = "";                              // the team's AI middleman (Cloudflare Worker); empty = AI off on the website
+function parseLooseJSON(t){
+  t = String(t || "").replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/, "");
+  const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b <= a) return null;
+  try { return JSON.parse(t.slice(a, b + 1)); } catch(e) { return null; }
+}
+const remoteSample = {remote: true, async json(prompt, opts = {}){
+  const user = FB && FB.auth.currentUser; if (!user) throw {code:"not_member"};
+  const token = await user.getIdToken();
+  let r;
+  try { r = await fetch(AI_URL, {method:"POST", headers:{"content-type":"application/json", authorization:"Bearer " + token},
+    body: JSON.stringify({prompt, pdf: opts.pdf || null, max: opts.max || 3000}), signal: opts.signal}); }
+  catch(e) { throw {code: e && e.name === "AbortError" ? "cancelled" : "upstream_error"}; }
+  const d = await r.json().catch(() => null);
+  if (!r.ok) throw {code: (d && d.error && d.error.code) || "upstream_error"};
+  const j = parseLooseJSON(d && d.text); if (!j) throw {code:"invalid_json"};
+  return j;
+}};
 let syncChain = Promise.resolve(), syncTimer = null;
 const lower = a => (a || []).map(x => String(x).toLowerCase());
 function memberBody(){
   const top = Object.entries(S.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
   return {level:S.level, m:S.m, t:S.t, a:S.a, c:S.c, xp:S.xp, wk:S.wk, wkXp:S.wkXp, streak:S.streak, lastDay:S.lastDay,
-          lastActive:S.lastActive, cert:S.cert, screenOk:S.screenOk, examBest:S.examBest, pm:S.pm, top};
+          lastActive:S.lastActive, cert:S.cert, screenOk:S.screenOk, examBest:S.examBest, pm:S.pm, top, hist:S.hist, exams:S.exams};
 }
 function syncTeam(){
   if (!TEAM || !FB) return; clearTimeout(syncTimer);
@@ -533,11 +579,11 @@ async function initFirebase(){
 }
 function mergeRemote(x){
   if ((x.lastActive||0) <= (S.lastActive||0)) return;
-  for (const k of ["level","m","t","a","c","xp","wk","wkXp","streak","lastDay","lastActive","cert","screenOk","examBest","pm"]) if (x[k] != null) S[k] = JSON.parse(JSON.stringify(x[k]));
+  for (const k of ["level","m","t","a","c","xp","wk","wkXp","streak","lastDay","lastActive","cert","screenOk","examBest","pm","hist","exams"]) if (x[k] != null) S[k] = JSON.parse(JSON.stringify(x[k]));
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
 }
 async function onAuth(user){
-  unsubs.forEach(u => u()); unsubs = []; TEAM = null; TEAMDATA.members = []; TEAMDATA.board = []; TEAMDATA.procs = []; TEAMDATA.requests = [];
+  unsubs.forEach(u => u()); unsubs = []; TEAM = null; if (sample && sample.remote) sample = null; TEAMDATA.members = []; TEAMDATA.board = []; TEAMDATA.procs = []; TEAMDATA.requests = [];
   if (!user) { AUTH = {state:"signedout", user:null, msg:""}; render(); return; }
   AUTH = {state:"loading", user, msg:""}; render();
   const email = String(user.email || "").toLowerCase();
@@ -558,6 +604,7 @@ async function onAuth(user){
   TEAM = {uid: user.uid, email, name: user.displayName || email.split("@")[0], manager: managers.includes(email)};
   TEAMDATA.access = {managers, members};
   AUTH = {state:"in", user, msg:""};
+  if (AI_URL && !sample) sample = remoteSample;
   try { const s = await FB.db.collection("members").doc(user.uid).get(); if (s.exists) mergeRemote(s.data()); } catch(e) {}
   const live = () => { if (tab === "team" || tab === "today") render(); };
   unsubs.push(FB.db.collection("leaderboard").onSnapshot(q => { TEAMDATA.board = q.docs.map(d => Object.assign({id:d.id}, d.data())); live(); }, () => {}));
@@ -691,6 +738,9 @@ function todayView(){
   let certNote = "Add your certification expiry date and the coach will remind you to review before it's due.";
   if (S.cert) { const left = dayNum(S.cert) - dayNum(t); certNote = left < 0 ? `Your certification expired ${-left} days ago.` : left <= 90 ? `${left} days to go. You're in the recertification window, so keep every topic above 60%.` : `${left} days until recertification.`; }
   nodes.push(el("h3",{class:"sec"}, "Certification"), el("div",{class:"panel"}, el("label",{class:"row", for:"cert-date"}, el("span",{}, `Level ${S.level} expires on`), certIn), el("p",{class:"note",style:"margin:0"}, certNote)));
+  nodes.push(el("h3",{class:"sec"}, "Training record"), el("div",{class:"panel"},
+    el("p",{class:"note",style:"margin:0"}, "A one-page record of your study time, topics, mock exams and procedures, ready to print or save as a PDF for your training file."),
+    recordRange(() => showRecord(myRecordSource()))));
   const mis = Object.entries(S.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,3);
   if (mis.length) nodes.push(el("h3",{class:"sec"}, "Your most common slips"), el("div",{class:"panel"}, ...mis.map(([k,n]) => el("div",{class:"review"}, el("span",{}, k), el("span",{class:"note"}, `${n}×`)))));
   nodes.push(confirmReset ? el("div",{class:"confirm"}, el("span",{}, "Erase all progress on this device?"),
@@ -803,7 +853,10 @@ function finishExam(){
     S.m[q.t] = bkt(eff(q.t), ok); S.t[q.t] = Date.now(); S.a[q.t]++; if (ok) S.c[q.t]++;
     if (!ok && a!=null && q.k !== "concept" && q.o[a][2]) { const k = mistakeKey(q.o[a][2]); S.mistakes[k] = (S.mistakes[k]||0)+1; } });
   const right = exam.qs.filter((q,i)=>exam.ans[i]!=null && q.o[exam.ans[i]][1]).length, score = Math.round(right/exam.qs.length*100);
-  S.examBest = Math.max(S.examBest || 0, score); S.lastActive = Date.now(); addXP(right*5 + 20); save(); toast(`Exam done: +${right*5+20} XP`); announceBadges();
+  S.examBest = Math.max(S.examBest || 0, score); S.lastActive = Date.now();
+  const used = Math.min(EXAM_MIN*60, Math.max(60, (EXAM_MIN*60000 - Math.max(0, exam.end - Date.now())) / 1000));
+  S.exams = [...(S.exams || []), {d: todayStr(), lv: S.level, n: exam.qs.length, r: right, sec: Math.round(used)}].slice(-60);
+  logStudy("Mock exam (Level " + S.level + ")", exam.qs.length, right, used); S.lastStudy = Date.now(); addXP(right*5 + 20); save(); toast(`Exam done: +${right*5+20} XP`); announceBadges();
   render(); window.scrollTo(0,0);
 }
 function examView(){
@@ -1113,6 +1166,14 @@ function teamView(){
     if (flagged.length) nodes.push(el("div",{class:"panel"}, el("strong",{}, "Needs attention"), ...flagged.map(m => { const act = m.lastActive ? daysSince(m.lastActive) : null; const cert = m.cert ? dayNum(m.cert) - dayNum(todayStr()) : null;
       const why = [act != null && act > 14 ? `no practice for ${act} days` : "", cert != null && cert <= 90 ? (cert < 0 ? "certification expired" : `recertification in ${cert} days`) : ""].filter(Boolean).join(", ");
       return el("div",{class:"review"}, el("span",{}, nameOf(m)), el("span",{class:"note"}, why)); })));
+    if (TEAM) {
+      const pick = el("select",{"aria-label":"Team member", onchange:e => recWho = e.target.value},
+        el("option",{value:"me"}, `You (${TEAM.name})`), ...TEAMDATA.members.filter(m => m.id !== TEAM.uid && TEAMDATA.access.managers.concat(TEAMDATA.access.members).includes(String(m.email||"").toLowerCase())).map(m => el("option",{value:m.id}, m.name || m.email)));
+      pick.value = [...pick.options].some(o => o.value === recWho) ? recWho : "me";
+      nodes.push(el("h3",{class:"sec"}, "Training records"), el("div",{class:"panel"},
+        el("p",{class:"note",style:"margin:0"}, "Print or save a training record for anyone on the team: study time, topics, mock exams and procedures, with signature lines."),
+        recordRange(() => { const who = pick.value; showRecord(who === "me" ? myRecordSource() : TEAMDATA.members.find(m => m.id === who)); }, el("label",{class:"row"}, el("span",{class:"note"}, "Person"), pick))));
+    }
     if (TEAM) nodes.push(accessPanel());
     if (TEAM && TEAMDATA.requests.length) nodes.splice(card ? 3 : 2, 0, el("div",{class:"banner"}, el("strong",{}, `${TEAMDATA.requests.length} ${TEAMDATA.requests.length === 1 ? "person wants" : "people want"} to join. `), el("a",{href:"#team-reqs", onclick:e=>{ e.preventDefault(); $("#team-reqs") && $("#team-reqs").scrollIntoView({behavior:"smooth", block:"center"}); }}, "Review requests")));
   }
@@ -1121,7 +1182,8 @@ function teamView(){
 }
 
 /* procedures UI */
-let procState = {busy:false, msg:"", ctl:null, title:"", text:"", confirmDel:null};
+let procState = {busy:false, msg:"", ctl:null, title:"", text:"", confirmDel:null, pdf:null};
+function toBase64(buf){ const u = new Uint8Array(buf); let s = ""; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
 function procSection(manager){
   const list = procList();
   const nodes = [el("h3",{class:"sec"}, "Our procedures")];
@@ -1139,10 +1201,20 @@ function procSection(manager){
   if (!canGen) { if (!TEAM || !TEAM.manager) nodes.push(el("p",{class:"note"}, TEAM ? "Your manager adds procedures here, and the UT coach turns each one into practice questions for the team." : "In the team version, a manager adds your company's procedures here and the UT coach turns them into practice questions for everyone.")); return nodes; }
   const title = el("input",{type:"text", id:"proc-title", placeholder:"Procedure name, e.g. UT-PR-12 Rev 3", style:"width:100%", oninput:e => procState.title = e.target.value}); title.value = procState.title;
   const ta = el("textarea",{id:"proc-text", placeholder:"Paste the procedure text here (scope, equipment, calibration, scanning, recording, acceptance…)", style:"min-height:140px", oninput:e => procState.text = e.target.value}); ta.value = procState.text;
-  const file = el("input",{type:"file", id:"proc-file", accept:".txt,.md,text/plain", onchange: async e => { const f = e.target.files[0]; if (!f) return; try { procState.text = (await f.text()).slice(0, 60000); if (!procState.title) procState.title = f.name.replace(/\.[^.]+$/,""); render(); } catch(err) { procState.msg = "That file couldn't be read. Paste the text instead."; render(); } }});
+  const file = el("input",{type:"file", id:"proc-file", accept:".pdf,application/pdf,.txt,.md,text/plain", onchange: async e => { const f = e.target.files[0]; if (!f) return; procState.msg = "";
+    try {
+      if (/\.pdf$/i.test(f.name) || f.type === "application/pdf") {
+        if (f.size > 10e6) { procState.msg = ERR.pdf_too_big; render(); return; }
+        procState.pdf = {name: f.name, size: f.size, b64: toBase64(await f.arrayBuffer())};
+      } else procState.text = (await f.text()).slice(0, 60000);
+      if (!procState.title) procState.title = f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," "); render();
+    } catch(err) { procState.msg = "That file couldn't be read. Try another file or paste the text."; render(); } }});
   nodes.push(el("div",{class:"panel"}, el("strong",{}, "Add a procedure"),
-    el("p",{class:"note",style:"margin:0"}, TEAM ? "The UT coach reads it and writes questions the whole team can practice." : "The UT coach reads it and writes practice questions. They're saved on this device."),
-    title, ta, el("label",{class:"note", for:"proc-file"}, "Or load a .txt file: ", file),
+    el("p",{class:"note",style:"margin:0"}, (TEAM ? "Upload a procedure PDF or paste its text. The UT coach reads it and writes questions the whole team can practice." : "The UT coach reads it and writes practice questions. They're saved on this device.") + " It takes about a minute."),
+    el("label",{class:"note", for:"proc-file"}, "Upload the procedure (PDF): ", file),
+    procState.pdf ? el("div",{class:"review",style:"grid-template-columns:minmax(0,1fr) auto;align-items:center"}, el("span",{style:"overflow-wrap:anywhere"}, el("b",{}, procState.pdf.name), el("span",{class:"note"}, ` · ${procState.pdf.size < 1e6 ? Math.max(1, Math.round(procState.pdf.size/1e3)) + " KB" : (procState.pdf.size/1e6).toFixed(1) + " MB"}`)),
+      el("button",{class:"btn",style:"min-height:34px;padding:4px 10px",onclick:()=>{ procState.pdf = null; render(); }}, "Remove")) : null,
+    el("label",{class:"note", for:"proc-title"}, "Procedure name"), title, procState.pdf ? null : ta,
     procState.busy ? el("div",{class:"thinking"}, el("span",{class:"dot"}), "Writing questions…", el("button",{class:"btn",style:"margin-left:auto;min-height:36px;padding:4px 12px",onclick:()=>procState.ctl?.abort()},"Stop"))
       : el("button",{class:"btn primary", style:"justify-self:start", onclick: generateProc}, "Write questions with the UT coach"),
     procState.msg ? el("p",{class:"note",style:"margin:0;color:var(--bad)"}, procState.msg) : null));
@@ -1166,30 +1238,30 @@ function importPanel(){
     el("label",{class:"note", for:"proc-json"}, "Question file: ", file));
 }
 async function generateProc(){
-  const text = (procState.text || "").trim(), title = (procState.title || "").trim() || "Untitled procedure";
-  if (text.length < 200) { procState.msg = "Paste at least a few paragraphs of the procedure first."; render(); return; }
+  const text = (procState.text || "").trim(), title = (procState.title || "").trim() || "Untitled procedure", pdf = procState.pdf;
+  if (!pdf && text.length < 200) { procState.msg = "Paste at least a few paragraphs of the procedure first."; render(); return; }
   procState.busy = true; procState.msg = ""; procState.ctl = new AbortController(); render();
   const prompt = `You write practice questions for ultrasonic testing (UT) technicians from their company's own procedure.
-Read the procedure below and write 8 multiple-choice questions that check the requirements a technician must know on the job: calibration, sensitivity, scanning, recording levels, acceptance criteria, and any numbers or limits.
-Rules: use only facts stated in the procedure; refer to section numbers when the text has them; every question has exactly 4 options and one correct answer; each wrong option should be a realistic mistake, with a one-sentence reason it is wrong; the explanation of the right answer is plain English, under 50 words.
+Read the procedure ${pdf ? "in the attached PDF" : "below"} and write ${pdf ? 12 : 8} multiple-choice questions that check the requirements a technician must know on the job: calibration, sensitivity, scanning, recording levels, acceptance criteria, and any numbers or limits.
+Rules: use only facts stated in the procedure; skip anything unclear, incomplete or contradictory in the document; refer to section numbers when the text has them; every question has exactly 4 options and one correct answer; each wrong option should be a realistic mistake, with a one-sentence reason it is wrong; the explanation of the right answer is plain English, under 50 words.
 Reply with only this JSON:
 {"summary": "one sentence on what the procedure covers",
  "questions": [{"q": "question", "options": ["A","B","C","D"], "answer": 0, "why": "why the right answer is right", "mistakes": ["reason option 0 is wrong, or empty for the right one", "...", "...", "..."]}]}
 
-Procedure title: ${title}
+Procedure title: ${title}${pdf ? "" : `
 Procedure text:
 """
 ${text.slice(0, 40000)}
-"""`;
+"""`}`;
   try {
-    const r = await sample.json(prompt, {signal: procState.ctl.signal, cache:false, modelTier:"default"});
+    const r = await sample.json(prompt, {signal: procState.ctl.signal, cache:false, modelTier:"default", pdf: pdf ? pdf.b64 : null, max: 8000});
     const qs = (r?.questions || []).filter(q => q && typeof q.q === "string" && Array.isArray(q.options) && q.options.length === 4 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < 4)
       .map(q => ({q: String(q.q), options: q.options.map(String), answer: q.answer, why: String(q.why || ""), mistakes: (q.mistakes || []).map(String).slice(0,4)}));
     if (qs.length < 3) throw {code:"invalid_json"};
     const proc = {title, summary: String(r.summary || ""), questions: qs, createdAt: Date.now()};
     if (TEAM && TEAM.manager) { await FB.db.collection("procedures").add(Object.assign({by: TEAM.uid}, proc)); }
     else { S.procs = [Object.assign({id: "local-" + Date.now(), local:true}, proc), ...(S.procs || [])]; save(); }
-    procState = {busy:false, msg:"", ctl:null, title:"", text:"", confirmDel:null};
+    procState = {busy:false, msg:"", ctl:null, title:"", text:"", confirmDel:null, pdf:null};
     toast(`${qs.length} questions added`);
   } catch(e) {
     procState.busy = false;
@@ -1203,6 +1275,62 @@ async function deleteProc(p){
   else if (TEAM) { try { await FB.db.collection("procedures").doc(p.id).delete(); } catch(e) { toast("Couldn't delete it. Try again."); } }
   render();
 }
+
+
+/* =============== training record =============== */
+let labLast = 0, labSaveT = null;
+document.addEventListener("input", () => {                 // time spent moving the lab sliders counts as study time
+  if (tab !== "lab") return;
+  const now = Date.now(), gap = (now - labLast) / 1000; labLast = now;
+  logStudy("Physics lab", 0, 0, gap > 0 && gap <= 120 ? gap : 20);
+  clearTimeout(labSaveT); labSaveT = setTimeout(save, 4000);
+});
+const hm = sec => { const m = Math.round(sec / 60); return m < 60 ? `${m} min` : `${Math.floor(m/60)} h ${String(m%60).padStart(2,"0")} min`; };
+const niceDate = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, {year:"numeric", month:"short", day:"numeric"});
+let recFrom = todayStr(new Date(Date.now() - 90*DAY)), recTo = todayStr(), recWho = "me";
+function recordRange(onCreate, extra){
+  const f = el("input",{type:"date", "aria-label":"From", onchange:e => recFrom = e.target.value}); f.value = recFrom;
+  const t = el("input",{type:"date", "aria-label":"To", onchange:e => recTo = e.target.value}); t.value = recTo;
+  return el("div",{style:"display:grid;gap:8px"}, extra || null,
+    el("div",{class:"row"}, el("span",{class:"note"}, "From"), f, el("span",{class:"note"}, "to"), t),
+    el("button",{class:"btn primary", style:"justify-self:start", onclick: onCreate}, "Create training record"));
+}
+function showRecord(p){
+  if (recFrom > recTo) [recFrom, recTo] = [recTo, recFrom];
+  const days = Object.entries(p.hist || {}).filter(([d]) => d >= recFrom && d <= recTo).sort((a,b) => a[0] < b[0] ? -1 : 1);
+  const tot = days.reduce((x,[,h]) => ({s:x.s+h.s, n:x.n+h.n, c:x.c+h.c}), {s:0,n:0,c:0});
+  const byTopic = {};
+  for (const [,h] of days) for (const [k,v] of Object.entries(h.tp || {})) { const b = byTopic[k] || (byTopic[k] = [0,0,0]); b[0]+=v[0]; b[1]+=v[1]; b[2]+=v[2]; }
+  const exams = (p.exams || []).filter(x => x.d >= recFrom && x.d <= recTo);
+  const procTitles = Object.fromEntries(procList().map(x => [x.id, x.title]));
+  const lvl = p.level || "II";
+  const topicRows = Object.entries(byTopic).sort((a,b) => b[1][2] - a[1][2]).map(([k,v]) => {
+    const conf = TOPICS.includes(k) ? pct(effOf(p.m?.[k] ?? BKT.init, p.t?.[k] || 0)) : "—";
+    return `<tr><td>${esc(k)}</td><td>${hm(v[2])}</td><td>${v[0] || "—"}</td><td>${v[0] ? Math.round(v[1]/v[0]*100) + "%" : "—"}</td><td>${conf}</td></tr>`; }).join("");
+  const dayRows = days.map(([d,h]) => `<tr><td>${niceDate(d)}</td><td>${hm(h.s)}</td><td>${h.n}</td><td>${h.n ? Math.round(h.c/h.n*100) + "%" : "—"}</td><td>${Object.keys(h.tp||{}).map(esc).join(", ")}</td></tr>`).join("");
+  const examRows = exams.map(x => `<tr><td>${niceDate(x.d)}</td><td>Level ${esc(x.lv)}</td><td>${x.r} / ${x.n}</td><td>${Math.round(x.r/x.n*100)}%</td><td>${hm(x.sec)}</td></tr>`).join("");
+  const procRows = Object.entries(p.pm || {}).filter(([id,v]) => v.a).map(([id,v]) => `<tr><td>${esc(procTitles[id] || "Procedure (removed)")}</td><td>${v.a}</td><td>${Math.round(v.c/v.a*100)}%</td><td>${pct(effOf(v.m, v.t))}</td></tr>`).join("");
+  const box = el("div",{id:"report", class:"report", role:"dialog", "aria-label":"Training record"});
+  box.innerHTML = `
+  <div class="noprint rp-bar"><button class="btn primary" id="rp-print">Print or save as PDF</button><button class="btn" id="rp-close">Close</button></div>
+  <header class="rp-head"><div><h1>Training record</h1><p>Ultrasonic Testing (UT) · self-study with UT Study Coach</p></div><div class="rp-gen">Generated ${niceDate(todayStr())}</div></header>
+  <table class="rp-meta"><tr><th>Trainee</th><td>${esc(p.name || "")}</td><th>Email</th><td>${esc(p.email || "")}</td></tr>
+    <tr><th>Period</th><td>${niceDate(recFrom)} – ${niceDate(recTo)}</td><th>Level studied</th><td>Level ${esc(lvl)}${p.cert ? ` · certification expires ${niceDate(p.cert)}` : ""}</td></tr></table>
+  <div class="rp-tiles"><div><b>${hm(tot.s)}</b><span>study time</span></div><div><b>${tot.n}</b><span>questions answered</span></div>
+    <div><b>${tot.n ? Math.round(tot.c/tot.n*100) + "%" : "—"}</b><span>answered correctly</span></div><div><b>${days.length}</b><span>days studied</span></div>
+    <div><b>${exams.length ? Math.max(...exams.map(x => Math.round(x.r/x.n*100))) + "%" : "—"}</b><span>best mock exam (${exams.length} taken)</span></div></div>
+  <h2>Time by topic</h2>${topicRows ? `<table class="rp"><thead><tr><th>Topic</th><th>Time</th><th>Questions</th><th>Correct</th><th>Confidence now</th></tr></thead><tbody>${topicRows}</tbody></table>` : `<p class="rp-none">No study recorded in this period.</p>`}
+  ${examRows ? `<h2>Mock exams</h2><table class="rp"><thead><tr><th>Date</th><th>Level</th><th>Score</th><th>%</th><th>Time</th></tr></thead><tbody>${examRows}</tbody></table>` : ""}
+  ${procRows ? `<h2>Company procedures practiced</h2><table class="rp"><thead><tr><th>Procedure</th><th>Questions</th><th>Correct</th><th>Confidence now</th></tr></thead><tbody>${procRows}</tbody></table>` : ""}
+  ${dayRows ? `<h2>Daily log</h2><table class="rp"><thead><tr><th>Date</th><th>Time</th><th>Questions</th><th>Correct</th><th>Topics</th></tr></thead><tbody>${dayRows}</tbody></table>` : ""}
+  <p class="rp-note">Study time is measured in the app: the time between answers (up to 3 minutes per question), mock exam time and time using the physics lab. This record documents self-study only. Whether it counts toward formal training hours is decided by the employer's written practice (for example under ASNT SNT-TC-1A).</p>
+  <div class="rp-sign"><div><span></span>Trainee signature / date</div><div><span></span>Reviewed by (Level III or supervisor) / date</div></div>`;
+  document.body.append(box); document.body.classList.add("rp-open");
+  const close = () => { box.remove(); document.body.classList.remove("rp-open"); };
+  box.querySelector("#rp-close").onclick = close; box.querySelector("#rp-print").onclick = () => window.print();
+  box.scrollTop = 0;
+}
+function myRecordSource(){ return Object.assign(memberBody(), {name: TEAM ? TEAM.name : "", email: TEAM ? TEAM.email : ""}); }
 
 /* =============== ASK =============== */
 let askBox = null, askDraft = "", faqOpen = null;
@@ -1219,6 +1347,7 @@ function askView(){
     el("p",{class:"muted",style:"margin:0"}, "Answers in plain English, usually with a sketch."),
     sample ? ta : null,
     sample ? el("button",{class:"btn primary", onclick: go}, "Ask") : null,
+    !sample && FIREBASE_CONFIG ? el("div",{class:"banner"}, TEAM ? "Asking your own questions isn't switched on for your team yet. The common questions below are ready to read." : el("span",{}, "To ask your own questions, ", el("a",{href:"#", onclick:e=>{ e.preventDefault(); tab="team"; render(); window.scrollTo(0,0); }}, "sign in on the Team tab"), " with your team account. The common questions below are open to everyone.")) : null,
     askBox && askBox.childNodes.length ? el("div",{class:"panel"}, askBox) : null,
     el("h3",{class:"sec"}, "Common questions"),
     faqList,
