@@ -539,7 +539,7 @@ let TEAM = null;                               // {uid, email, name, manager} on
 const TEAMDATA = {members:[], board:[], procs:[], requests:[], access:{managers:[], members:[]}};
 let AUTH = {state: FIREBASE_CONFIG ? "loading" : "off", user:null, msg:""};   // off | loading | signedout | denied | in
 let FB = null, unsubs = [];
-const AI_URL = "";                              // the team's AI middleman (Cloudflare Worker); empty = AI off on the website
+const AI_URL = "https://ut-coach-ai.gholami-ali90.workers.dev";                              // the team's AI middleman (Cloudflare Worker); empty = AI off on the website
 function parseLooseJSON(t){
   t = String(t || "").replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/, "");
   const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b <= a) return null;
