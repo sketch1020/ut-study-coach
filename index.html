@@ -873,40 +873,43 @@ function buildSnell(stage){
 function buildBeam(stage){
   const st = LS.beam, fig = el("div"), info = el("div",{style:"display:grid;gap:8px"});
   const V = {"Steel":5.92, "Aluminum":6.32, "Water":1.48};
+  const deg = r => fmt(r*180/Math.PI);
   const draw = () => {
     const v = V[st.mat], lam = v/st.f, a = st.D/2, N = st.D*st.D/(4*lam);
     const g6 = Math.asin(Math.min(.99, 0.51*lam/st.D)), g0 = Math.asin(Math.min(.99, 1.22*lam/st.D));
-    const water = st.mat === "Water", zmax = water ? 1200 : 300, tick = water ? 200 : 50, ymm = water ? 60 : 40;  // fixed scales, so changes are visible
-    const W=340, H=300, x0=30, x1=332, mid=96, half=78, bot=272, sx=(x1-x0)/zmax, sy=half/ymm;
-    const X = z => x0 + Math.min(z, zmax)*sx, Y = r => mid - r*sy;
+    const water = st.mat === "Water", zmax = water ? 800 : 200, tick = water ? 100 : 25;
+    const W=340, H=300, x0=30, x1=332, mid=96, half=80, bot=272, sc=(x1-x0)/zmax;   // ONE scale for both directions, so angles are drawn true
+    const X = z => x0 + Math.min(z, zmax)*sc, Yu = r => mid - r*sc, Yd = r => mid + r*sc;
     const r6 = z => z <= N ? a - 0.5*a*(z/N) : 0.5*a + (z-N)*Math.tan(g6);
-    const top = [], low = []; for (let i=0;i<=200;i++){ const z = i/200*zmax; top.push(`${X(z).toFixed(1)},${Y(r6(z)).toFixed(1)}`); low.push(`${X(z).toFixed(1)},${(mid + r6(z)*sy).toFixed(1)}`); }
+    const r0 = z => z <= N ? a - 0.5*a*(z/N) : 0.5*a + (z-N)*Math.tan(g0);
+    const top = [], low = []; for (let i=0;i<=200;i++){ const z = i/200*zmax; top.push(`${X(z).toFixed(1)},${Yu(r6(z)).toFixed(1)}`); low.push(`${X(z).toFixed(1)},${Yd(r6(z)).toFixed(1)}`); }
     let g = `<defs><clipPath id="bclip"><rect x="${x0}" y="${mid-half}" width="${x1-x0}" height="${2*half}"/></clipPath></defs>`;
-    g += `<g clip-path="url(#bclip)"><polygon points="${top.join(" ")} ${low.reverse().join(" ")}" fill="var(--signal)" fill-opacity=".22" stroke="var(--signal)" stroke-width="1.4"/>`;
-    if (N < zmax) { const zE = zmax; g += `<line x1="${X(N)}" y1="${Y(0.5*a)}" x2="${X(zE)}" y2="${Y(0.5*a + (zE-N)*Math.tan(g0))}" stroke="var(--signal)" stroke-dasharray="4 4"/><line x1="${X(N)}" y1="${mid+0.5*a*sy}" x2="${X(zE)}" y2="${mid + (0.5*a + (zE-N)*Math.tan(g0))*sy}" stroke="var(--signal)" stroke-dasharray="4 4"/>`; }
+    g += `<g clip-path="url(#bclip)"><polygon points="${top.join(" ")} ${low.reverse().join(" ")}" fill="var(--signal)" fill-opacity=".22" stroke="var(--signal)" stroke-width="1.6"/>`;
+    if (N < zmax) g += `<line x1="${X(N)}" y1="${Yu(r0(N))}" x2="${X(zmax)}" y2="${Yu(r0(zmax))}" stroke="var(--signal)" stroke-dasharray="4 4"/><line x1="${X(N)}" y1="${Yd(r0(N))}" x2="${X(zmax)}" y2="${Yd(r0(zmax))}" stroke="var(--signal)" stroke-dasharray="4 4"/>`;
     g += `</g>`;
     g += `<line x1="${x0}" y1="${mid}" x2="${x1}" y2="${mid}" stroke="var(--muted)" stroke-width=".6" stroke-dasharray="2 4"/>`;
-    g += `<rect x="${x0-10}" y="${Y(a)}" width="9" height="${2*a*sy}" fill="var(--wedge)" stroke="var(--ink)" stroke-width=".6"/>`;
-    g += `<line x1="${x0-16}" y1="${Y(a)}" x2="${x0-16}" y2="${mid+a*sy}" stroke="var(--ink)" stroke-width="1"/><text x="${x0-19}" y="${mid+4}" fill="var(--ink)" font-size="10" text-anchor="end" transform="rotate(-90 ${x0-19} ${mid+4})">D ${st.D}</text>`;
+    g += `<rect x="${x0-8}" y="${Yu(a)}" width="7" height="${Math.max(2, 2*a*sc)}" fill="var(--wedge)" stroke="var(--ink)" stroke-width=".6"/>`;
+    g += `<text x="${x0-12}" y="${mid+4}" fill="var(--ink)" font-size="10" text-anchor="middle" transform="rotate(-90 ${x0-12} ${mid+4})">D ${st.D}</text>`;
     if (N <= zmax) {
       g += `<line x1="${X(N)}" y1="${mid-half}" x2="${X(N)}" y2="${bot}" stroke="var(--accent)" stroke-dasharray="5 4" stroke-width="1.5"/>`;
-      g += `<text x="${Math.min(X(N)+4, x1-70)}" y="${mid-half+12}" fill="var(--accent)" font-size="12" font-weight="700">N = ${fmt(N)} mm</text>`;
+      g += `<text x="${Math.min(X(N)+4, x1-74)}" y="${mid-half+12}" fill="var(--accent)" font-size="12" font-weight="700">N = ${fmt(N)} mm</text>`;
       g += `<line x1="${x0}" y1="${mid+half+8}" x2="${X(N)}" y2="${mid+half+8}" stroke="var(--accent)" stroke-width="2"/>`;
       g += `<text x="${Math.max((x0+X(N))/2, x0+24)}" y="${mid+half+20}" fill="var(--accent)" font-size="10" text-anchor="middle">near field</text>`;
-      const gx = Math.min(X(N) + 60, x1 - 20), gy = Y(0.5*a + (Math.min(N+60/sx, zmax)-N)*Math.tan(g6)) - 8;
-      g += `<text x="${gx}" y="${Math.max(mid-half+26, gy)}" fill="var(--signal)" font-size="11" font-weight="700" text-anchor="middle">γ ${fmt(g6*180/Math.PI)}°</text>`;
+      const zl = N + (zmax - N)*0.62;
+      g += `<text x="${X(zl)}" y="${Math.max(mid-half+26, Yu(r6(zl)) - 10)}" fill="var(--signal)" font-size="11" font-weight="700" text-anchor="middle">−6 dB: ${deg(g6)}°</text>`;
+      g += `<text x="${X(zl)}" y="${Math.min(mid+half-4, Yd(r0(zl)) + 14)}" fill="var(--signal)" font-size="11" text-anchor="middle">null: ${deg(g0)}°</text>`;
     } else {
       g += `<text x="${x1-4}" y="${mid-half+12}" fill="var(--accent)" font-size="12" font-weight="700" text-anchor="end">N = ${fmt(N)} mm (off screen) →</text>`;
       g += `<line x1="${x0}" y1="${mid+half+8}" x2="${x1}" y2="${mid+half+8}" stroke="var(--accent)" stroke-width="2"/><text x="${(x0+x1)/2}" y="${mid+half+20}" fill="var(--accent)" font-size="10" text-anchor="middle">all near field</text>`;
     }
     for (let z=0; z<=zmax; z+=tick) g += `<line x1="${X(z)}" y1="${bot}" x2="${X(z)}" y2="${bot+4}" stroke="var(--muted)"/><text x="${X(z)}" y="${bot+15}" fill="var(--muted)" font-size="9" text-anchor="middle">${z}</text>`;
-    g += `<text x="${x1}" y="${bot+26}" fill="var(--muted)" font-size="9" text-anchor="end">distance from probe (mm)</text>`;
+    g += `<text x="${x1}" y="${bot+26}" fill="var(--muted)" font-size="9" text-anchor="end">distance from probe (mm) · drawn to true scale</text>`;
     const k = 2*Math.PI/lam, py = []; for (let i=1;i<=700;i++){ const z = i/700*zmax; const p = Math.abs(2*Math.sin(k/2*(Math.sqrt(a*a+z*z)-z))); py.push(`${X(z).toFixed(1)},${(bot - p/2*46).toFixed(1)}`); }
     g += `<line x1="${x0}" y1="${bot}" x2="${x1}" y2="${bot}" stroke="var(--line)"/><polyline points="${py.join(" ")}" fill="none" stroke="var(--bad)" stroke-width="1.3"/><text x="${x0+2}" y="${bot-52}" fill="var(--bad)" font-size="10">on-axis pressure</text>`;
-    fig.replaceChildren(svgEl(`<svg class="sim" viewBox="0 0 ${W} ${H}" role="img" aria-label="Beam: near field ${fmt(N)} mm, spread ${fmt(g6*180/Math.PI)} degrees" font-family="Atkinson Hyperlegible, system-ui, sans-serif">${g}</svg>`));
-    info.replaceChildren(el("div",{class:"readout"}, el("div",{}, el("b",{}, fmt(lam,2)+" mm"), el("span",{}, "wavelength λ")), el("div",{}, el("b",{}, fmt(N)+" mm"), el("span",{}, "near field N")), el("div",{}, el("b",{}, fmt(g6*180/Math.PI)+"°"), el("span",{}, "−6 dB half-angle γ")), el("div",{}, el("b",{}, fmt(g0*180/Math.PI)+"°"), el("span",{}, "edge (null) angle, dashed"))),
-      el("p",{class:"note",style:"margin:0"}, "Raise the frequency or the diameter: the near field gets longer and the beam spreads less. Inside the near field the pressure jumps up and down (red), so echo height there is unreliable for sizing."),
-      el("p",{class:"note mono",style:"margin:0"}, `N = D²·f / (4v) = ${st.D}² × ${st.f} / (4 × ${v}) = ${fmt(N)} mm\nsin γ = 0.51·λ / D = 0.51 × ${fmt(lam,2)} / ${st.D}`));
+    fig.replaceChildren(svgEl(`<svg class="sim" viewBox="0 0 ${W} ${H}" role="img" aria-label="Beam: near field ${fmt(N)} mm, −6 dB half-angle ${deg(g6)} degrees" font-family="Atkinson Hyperlegible, system-ui, sans-serif">${g}</svg>`));
+    info.replaceChildren(el("div",{class:"readout"}, el("div",{}, el("b",{}, fmt(lam,2)+" mm"), el("span",{}, "wavelength λ")), el("div",{}, el("b",{}, fmt(N)+" mm"), el("span",{}, "near field N")), el("div",{}, el("b",{}, deg(g6)+"°"), el("span",{}, "−6 dB half-angle (solid)")), el("div",{}, el("b",{}, deg(g0)+"°"), el("span",{}, "null half-angle (dashed)"))),
+      el("p",{class:"note",style:"margin:0"}, "Solid edge: the echo is half as strong as on the centre line (−6 dB), the edge used for 6 dB drop sizing. Dashed edge: the beam's energy falls to zero (first null). Both open from the end of the near field. Raise the frequency or diameter and both angles shrink while the near field gets longer."),
+      el("p",{class:"note mono",style:"margin:0"}, `N = D²·f / (4v) = ${st.D}² × ${st.f} / (4 × ${v}) = ${fmt(N)} mm\n−6 dB: sin γ = 0.51·λ/D = ${(0.51*lam/st.D).toFixed(3)}\nnull:  sin γ = 1.22·λ/D = ${(1.22*lam/st.D).toFixed(3)}`));
   };
   stage.append(fig,
     slider("beam-f", "Frequency", 1, 10, 0.25, st.f, "MHz", v => { st.f = v; draw(); }),
