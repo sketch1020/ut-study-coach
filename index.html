@@ -984,15 +984,47 @@ function signInCard(){
     el("p",{class:"note",style:"margin:0"}, "Below is an example team so you can see what it looks like."));
   return null;
 }
+const SITE = "https://sketch1020.github.io/ut-study-coach/";
+function sendInvite(email, asMgr){
+  const from = TEAM && TEAM.name ? TEAM.name : "";
+  const subject = "Join our UT Study Coach team";
+  const body = `Hi,
+
+I've added you to our UT Study Coach team${asMgr ? " as a manager" : ""}. It's a free practice app for UT Level I, II and III: a daily 5-minute challenge, A-scan questions, physics simulations and mock exams, with every answer explained.
+
+To join:
+1. Open ${SITE}#team
+2. Tap "Sign in with Google" and use this Gmail address: ${email}
+3. That's it. Your progress is saved to the team.
+
+Tip: on your phone, use Share > Add to Home Screen to keep it like an app.
+
+${from}`.trim();
+  const mobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+  const url = mobile
+    ? `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const link = el("a",{href:url, target: mobile ? null : "_blank", rel:"noopener"}); document.body.append(link); link.click(); link.remove();
+  try { navigator.clipboard && navigator.clipboard.writeText(body).catch(()=>{}); } catch(e) {}
+  toast(mobile ? "Opening your email app…" : "Opening Gmail…");
+}
 function accessPanel(){
   const add = el("input",{type:"text", id:"team-add", placeholder:"name@gmail.com", inputmode:"email", autocomplete:"off", style:"flex:1;min-width:0"});
-  const doAdd = asMgr => { const v = add.value.trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { toast("Enter a full email address"); return; } changeAccess(asMgr ? "managers" : "members", v, false); add.value = ""; };
-  const row = (email, list) => el("div",{class:"review",style:"grid-template-columns:1fr auto;align-items:center"}, el("span",{}, email, list === "managers" ? el("span",{class:"note"}, "  · manager") : null),
-    email === TEAM.email ? el("span",{class:"note"}, "you") : el("button",{class:"btn",style:"min-height:34px;padding:4px 10px",onclick:()=>changeAccess(list, email, true)}, "Remove"));
+  const doAdd = asMgr => { const v = add.value.trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { toast("Enter a full email address"); return; }
+    sendInvite(v, asMgr);                                     // open the email first, while the tap still counts as a user action
+    changeAccess(asMgr ? "managers" : "members", v, false); add.value = ""; };
+  const joined = new Set(TEAMDATA.members.map(m => String(m.email || "").toLowerCase()).concat([TEAM.email]));
+  const btn = (label, fn) => el("button",{class:"btn",style:"min-height:34px;padding:4px 10px",onclick:fn}, label);
+  const row = (email, list) => el("div",{class:"review",style:"grid-template-columns:minmax(0,1fr) auto;align-items:center"},
+    el("span",{style:"min-width:0;overflow-wrap:anywhere"}, email, list === "managers" ? el("span",{class:"note"}, " · manager") : null,
+      email === TEAM.email ? null : el("span",{class:"note", style: joined.has(email) ? "color:var(--good)" : ""}, joined.has(email) ? " · joined" : " · not joined yet")),
+    email === TEAM.email ? el("span",{class:"note"}, "you") : el("span",{class:"row",style:"gap:6px;flex-wrap:nowrap"},
+      joined.has(email) ? null : btn("Invite", () => sendInvite(email, list === "managers")),
+      btn("Remove", () => changeAccess(list, email, true))));
   return el("div",{class:"panel",style:"gap:6px"}, el("strong",{}, "Who's on the team"),
-    el("p",{class:"note",style:"margin:0"}, "Only these Google accounts can sign in to the team. Add a colleague's Gmail address, then send them the link."),
+    el("p",{class:"note",style:"margin:0"}, "Only these Google accounts can sign in. When you add someone, an invitation email opens in your Gmail, ready to send. Use Invite to send it again."),
     ...TEAMDATA.access.managers.map(e => row(e, "managers")), ...TEAMDATA.access.members.filter(e => !TEAMDATA.access.managers.includes(e)).map(e => row(e, "members")),
-    el("div",{class:"row"}, add, el("button",{class:"btn primary", onclick:()=>doAdd(false)}, "Add")),
+    el("div",{class:"row"}, add, el("button",{class:"btn primary", onclick:()=>doAdd(false)}, "Add & invite")),
     el("button",{class:"btn",style:"justify-self:start;min-height:34px;padding:4px 10px",onclick:()=>doAdd(true)}, "Add as manager"));
 }
 function teamView(){
