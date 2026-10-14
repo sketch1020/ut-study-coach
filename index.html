@@ -836,7 +836,7 @@ function followUpPanel(){
     onkeydown:e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); followUp(ta.value); } }});
   ta.value = cur.fuDraft || "";
   const wrong = cur.chosen != null && !cur.q.o[cur.chosen][1];
-  const chips = ["Explain it more simply", "Show the math step by step", wrong ? "Why is my answer wrong?" : "When would I use this on the job?"];
+  const chips = ["Explain it more simply", "Explain like I'm 5", "Show the math step by step", wrong ? "Why is my answer wrong?" : "When would I use this on the job?"];
   const thread = chat.map(t => el("div",{class:"fu-turn"},
     el("p",{class:"fu-me"}, t.q),
     t.busy ? el("div",{class:"thinking"}, el("span",{class:"dot"}), "Thinking…")
@@ -865,7 +865,7 @@ ${contextFor(q, chosen)}
 Explanation the student already saw:
 ${seen}
 ${earlier ? "\nConversation so far:\n" + earlier + "\n" : ""}
-Student's follow-up: ${text}`;
+Student's follow-up: ${text}${/like I'm 5/i.test(text) ? "\n(For this one: explain it the way you would to a curious 5-year-old - tiny words, one everyday picture like echoes, flashlights or a ball bouncing, no formulas. Then one short line starting 'Grown-up version:' tying it back to the answer.)" : ""}`;
   try {
     const r = await sample.json(prompt, {cache:false, max: 1500});
     turn.a = {text: String(r?.explanation ?? "").replace(/\\n/g,"\n").trim() || "No answer came back. Try asking another way.", sketch: r?.sketch || null};
