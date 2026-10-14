@@ -476,55 +476,103 @@ A sketch uses a 2-D coordinate system you choose (y points UP, so a part's top s
   {"type": "text", "xy": [x, y], "text": "2-4 words", "color": "ink|blue|red|amber", "anchor": "middle|start|end"}
  ]}
 Keep it simple: at most 14 items, short labels that do not overlap, everything inside xlim/ylim. Draw probes, wedges, parts, beams, angles, reflectors or an A-scan trace as fits the topic.`;
-const ERR = {not_granted:"Claude wasn't allowed for this page. You can allow it from the page's permissions.",
-  sampling_disabled:"Claude isn't available on this account.", rate_limited:"Too many questions at once or a usage limit was reached. Try again in a minute.",
-  session_expired:"Please sign in to Claude again.", refused:"Claude couldn't answer that one. Try asking differently.",
-  invalid_json:"Claude's answer came back in the wrong shape. Tap the button again.", upstream_error:"The connection dropped. Tap the button again."};
+const ERR = {not_granted:"The UT coach wasn't allowed on this page. You can allow it from the page's permissions.",
+  sampling_disabled:"The UT coach isn't available on this account.", rate_limited:"Too many questions at once or a usage limit was reached. Try again in a minute.",
+  session_expired:"Please sign in again.", refused:"The UT coach couldn't answer that one. Try asking differently.",
+  invalid_json:"The answer came back in the wrong shape. Tap the button again.", upstream_error:"The connection dropped. Tap the button again."};
 async function askClaude(prompt, box, ctl){
-  box.replaceChildren(el("h3",{},"Claude explains"), el("div",{class:"thinking"}, el("span",{class:"dot"}), "Thinking…", el("button",{class:"btn",style:"margin-left:auto;min-height:36px;padding:4px 12px",onclick:()=>ctl.abort()},"Stop")));
+  box.replaceChildren(el("h3",{},"UT coach explains"), el("div",{class:"thinking"}, el("span",{class:"dot"}), "Thinking…", el("button",{class:"btn",style:"margin-left:auto;min-height:36px;padding:4px 12px",onclick:()=>ctl.abort()},"Stop")));
   try {
     const r = await sample.json(RULES + "\n\n" + prompt, {signal: ctl.signal, cache: false});
     const text = String(r?.explanation ?? "").replace(/\\n/g,"\n").trim();
-    const kids = [el("h3",{},"Claude explains"), el("p",{class:"pre"}, text || "No explanation came back.")];
+    const kids = [el("h3",{},"UT coach explains"), el("p",{class:"pre"}, text || "No explanation came back.")];
     const svg = sketchSVG(r?.sketch); if (svg) kids.push(svg);
     box.replaceChildren(...kids);
   } catch(e) {
     if (e?.code === "cancelled") { box.replaceChildren(); return; }
-    box.replaceChildren(el("h3",{},"Claude explains"), el("p",{class:"muted"}, ERR[e?.code] || ERR.upstream_error));
+    box.replaceChildren(el("h3",{},"UT coach explains"), el("p",{class:"muted"}, ERR[e?.code] || ERR.upstream_error));
     if (e?.code === "not_granted" || e?.code === "sampling_disabled") { sample = null; }
   }
 }
 
 
-let TEAM = null;                               // {db, user, uid, manager} when opened as the team version
-const TEAMDATA = {members:[], procs:[], names:{}};
+/* ---------- team store: Google (Gmail) sign-in through Firebase ---------- */
+const FIREBASE_CONFIG = (location.hostname.endsWith("github.io") || /[?&]team=1/.test(location.search)) ? {"apiKey":"AIzaSyBxlitIzJqi1nrlwJGYvcdeY69e_71DRtg","authDomain":"ut-study-coach.firebaseapp.com","projectId":"ut-study-coach","storageBucket":"ut-study-coach.firebasestorage.app","messagingSenderId":"64982170598","appId":"1:64982170598:web:f7af7a05f014fd2dd3b427"} : null;   // team sign-in runs on the public website
+const FBV = "10.12.2";
+let TEAM = null;                               // {uid, email, name, manager} once a listed person signs in
+const TEAMDATA = {members:[], board:[], procs:[], access:{managers:[], members:[]}};
+let AUTH = {state: FIREBASE_CONFIG ? "loading" : "off", user:null, msg:""};   // off | loading | signedout | denied | in
+let FB = null, unsubs = [];
 let syncChain = Promise.resolve(), syncTimer = null;
-function syncTeam(){
-  if (!TEAM) return; clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => { const body = memberBody();
-    syncChain = syncChain.then(() => TEAM.db.doc("members/" + TEAM.uid).set(body)).catch(() => {}); }, 1500);
-}
+const lower = a => (a || []).map(x => String(x).toLowerCase());
 function memberBody(){
   const top = Object.entries(S.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
   return {level:S.level, m:S.m, t:S.t, a:S.a, c:S.c, xp:S.xp, wk:S.wk, wkXp:S.wkXp, streak:S.streak, lastDay:S.lastDay,
           lastActive:S.lastActive, cert:S.cert, screenOk:S.screenOk, examBest:S.examBest, pm:S.pm, top};
 }
-(async function initClaude(){
-  const c = window.claude; if (!c || !c.use) return;
-  const [s, d, u] = await Promise.all(["sample","db","user"].map(n => c.use(n).catch(() => null)));
-  sample = s;
-  if (d && u) {
-    const uid = await u.id();
-    if (uid) {
-      TEAM = {db:d, user:u, uid, manager: await u.canEdit()};
-      try { const snap = await d.doc("members/" + uid).get();
-        if (snap.exists) { const x = snap.data(); if ((x.lastActive||0) > (S.lastActive||0)) { for (const k of ["level","m","t","a","c","xp","wk","wkXp","streak","lastDay","lastActive","cert","screenOk","examBest","pm"]) if (x[k] != null) S[k] = JSON.parse(JSON.stringify(x[k])); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} } } } catch(e) {}
-      d.collection("members").onSnapshot(q => { TEAMDATA.members = q.docs.map(x => Object.assign({id:x.id}, x.data())); if (tab === "team") render(); }, () => {});
-      d.collection("procedures").onSnapshot(q => { TEAMDATA.procs = q.docs.map(x => Object.assign({id:x.id}, x.data())).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); if (tab === "team") render(); }, () => {});
-    }
+function syncTeam(){
+  if (!TEAM || !FB) return; clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    const body = Object.assign(memberBody(), {name: TEAM.name, email: TEAM.email});
+    const lb = {name: TEAM.name, wk: S.wk, wkXp: S.wkXp, streak: S.streak, lastDay: S.lastDay, lastActive: S.lastActive};
+    syncChain = syncChain.then(() => Promise.all([FB.db.collection("members").doc(TEAM.uid).set(body), FB.db.collection("leaderboard").doc(TEAM.uid).set(lb)])).catch(() => {});
+  }, 1500);
+}
+function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.append(s); }); }
+async function initFirebase(){
+  if (!FIREBASE_CONFIG) return;
+  try {
+    if (!window.firebase) for (const m of ["app","auth","firestore"]) await loadScript(`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`);
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    FB = {auth: firebase.auth(), db: firebase.firestore()};
+    try { await FB.auth.getRedirectResult(); } catch(e) {}
+    FB.auth.onAuthStateChanged(onAuth);
+  } catch(e) { AUTH = {state:"off", user:null, msg:"Team sign-in couldn't load. Check your internet connection."}; render(); }
+}
+function mergeRemote(x){
+  if ((x.lastActive||0) <= (S.lastActive||0)) return;
+  for (const k of ["level","m","t","a","c","xp","wk","wkXp","streak","lastDay","lastActive","cert","screenOk","examBest","pm"]) if (x[k] != null) S[k] = JSON.parse(JSON.stringify(x[k]));
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
+}
+async function onAuth(user){
+  unsubs.forEach(u => u()); unsubs = []; TEAM = null; TEAMDATA.members = []; TEAMDATA.board = []; TEAMDATA.procs = [];
+  if (!user) { AUTH = {state:"signedout", user:null, msg:""}; render(); return; }
+  AUTH = {state:"loading", user, msg:""}; render();
+  const email = String(user.email || "").toLowerCase();
+  let access = null;
+  try { const snap = await FB.db.collection("config").doc("team").get(); access = snap.exists ? snap.data() : null; } catch(e) { access = null; }   // people not on the list can't read it
+  if (!access) { try { await FB.db.collection("config").doc("team").set({managers:[email], members:[]}); access = {managers:[email], members:[]}; } catch(e) {} }   // first sign-in by the owner creates the team list
+  const managers = lower(access && access.managers), members = lower(access && access.members);
+  if (!access || (!managers.includes(email) && !members.includes(email))) { AUTH = {state:"denied", user, msg:""}; render(); return; }
+  TEAM = {uid: user.uid, email, name: user.displayName || email.split("@")[0], manager: managers.includes(email)};
+  TEAMDATA.access = {managers, members};
+  AUTH = {state:"in", user, msg:""};
+  try { const s = await FB.db.collection("members").doc(user.uid).get(); if (s.exists) mergeRemote(s.data()); } catch(e) {}
+  const live = () => { if (tab === "team" || tab === "today") render(); };
+  unsubs.push(FB.db.collection("leaderboard").onSnapshot(q => { TEAMDATA.board = q.docs.map(d => Object.assign({id:d.id}, d.data())); live(); }, () => {}));
+  unsubs.push(FB.db.collection("procedures").onSnapshot(q => { TEAMDATA.procs = q.docs.map(d => Object.assign({id:d.id}, d.data())).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); live(); }, () => {}));
+  unsubs.push(FB.db.collection("config").doc("team").onSnapshot(s => { if (s.exists) { const a = s.data(); TEAMDATA.access = {managers: lower(a.managers), members: lower(a.members)}; live(); } }, () => {}));
+  if (TEAM.manager) unsubs.push(FB.db.collection("members").onSnapshot(q => { TEAMDATA.members = q.docs.map(d => Object.assign({id:d.id}, d.data())); live(); }, () => {}));
+  syncTeam(); render();
+}
+async function signIn(){
+  if (!FB) return;
+  const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:"select_account"});
+  try { await FB.auth.signInWithPopup(p); }
+  catch(e) {
+    const code = e && e.code || "";
+    if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment") { try { await FB.auth.signInWithRedirect(p); } catch(e2) {} }
+    else if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request") { AUTH.msg = "Sign-in didn't work. Try again, or open the page in Safari or Chrome."; render(); }
   }
-  render();
-})();
+}
+function signOut(){ if (FB) FB.auth.signOut(); }
+async function changeAccess(list, email, remove){
+  const fv = firebase.firestore.FieldValue, ref = FB.db.collection("config").doc("team");
+  try { await ref.update({[list]: remove ? fv.arrayRemove(email) : fv.arrayUnion(email)}); }
+  catch(e) { toast("Couldn't update the team list. Try again."); }
+}
+(async function initClaude(){ const c = window.claude; if (!c || !c.use) return; try { sample = await c.use("sample"); } catch(e) { sample = null; } render(); })();
+initFirebase();
 
 /* =============== header gauge =============== */
 function drawGauge(){
@@ -546,7 +594,7 @@ const ICONS = {
   lab:'<path d="M9 3 h6 M10 3 v6 L5 19 a1 1 0 0 0 1 1.5 h12 a1 1 0 0 0 1-1.5 L14 9 V3"/>',
   team:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20 c0-3.5 2.7-6 6-6 s6 2.5 6 6 M15 14.5 c3 0 6 2 6 5.5"/>',
   ask:'<path d="M5 5 h14 v10 H10 l-4 4 v-4 H5 z"/>'};
-const LABELS = {today:"Today", practice:"Practice", lab:"Lab", team:"Team", ask:"Ask Claude"};
+const LABELS = {today:"Today", practice:"Practice", lab:"Lab", team:"Team", ask:"Ask UT coach"};
 function renderTabs(){
   $("#tabs").replaceChildren(...Object.keys(LABELS).map(k => {
     const b = el("button",{"aria-current": k===tab ? "page" : null, onclick:()=>{ tab=k; render(); window.scrollTo(0,0); }});
@@ -615,7 +663,7 @@ function todayView(){
       el("div",{class:"row"}, el("button",{class:"btn",onclick:()=>{confirmReset=false;render();}},"Keep it"),
         el("button",{class:"btn",style:"border-color:var(--bad);color:var(--bad)",onclick:()=>{ const l=S.level, p=S.procs; S=fresh(); S.level=l; S.procs=p; save(); confirmReset=false; cur=null; render(); }},"Erase progress")))
     : el("button",{class:"btn",style:"justify-self:start",onclick:()=>{confirmReset=true;render();}}, "Reset my progress"));
-  nodes.push(el("p",{class:"note"}, TEAM ? "Your progress is saved to your team and shared with your manager." : "Progress is saved in this browser on this device."));
+  nodes.push(el("p",{class:"note"}, TEAM ? `Signed in as ${TEAM.email}. Your progress is saved to your team and shared with your manager.` : "Progress is saved in this browser on this device. Sign in on the Team tab to save it to your team."));
   return nodes;
 }
 let confirmReset = false;
@@ -663,7 +711,7 @@ function practiceView(){
   }
   const row = el("div",{class:"row"});
   if (!answered) row.append(el("button",{class:"btn",onclick:()=>{cur.hint=true;render();}}, "Hint"));
-  if (answered && (q.x || sample) && !(cur.claudeBox && cur.claudeBox.childNodes.length)) row.append(el("button",{class:"btn claude", onclick: explain}, "Explain with Claude"));
+  if (answered && (q.x || sample) && !(cur.claudeBox && cur.claudeBox.childNodes.length)) row.append(el("button",{class:"btn claude", onclick: explain}, "Ask UT coach"));
   const isDaily = cur.mode === "daily", last = isDaily && S.daily.n >= 5;
   row.append(el("button",{class:"btn primary grow", onclick: nextQ}, last ? "Finish challenge" : answered ? "Next question" : (isDaily ? "Skip for now" : "Skip")));
   nodes.push(row);
@@ -686,7 +734,7 @@ function answer(i){
   render();
 }
 function showPre(box, x){
-  const kids = [el("h3",{},"Claude explains"), el("p",{class:"pre"}, String(x.e||"").trim())];
+  const kids = [el("h3",{},"UT coach explains"), el("p",{class:"pre"}, String(x.e||"").trim())];
   const svg = sketchSVG(x.s); if (svg) kids.push(svg);
   box.replaceChildren(...kids);
 }
@@ -753,7 +801,7 @@ function examView(){
       el("strong",{}, q.q), el("span",{style:"color:var(--bad)"}, a==null ? "Not answered" : "Your answer: " + q.o[a][0]),
       el("span",{style:"color:var(--good)"}, "Correct: " + q.o.find(o=>o[1])[0]),
       a!=null && q.o[a][2] ? el("span",{class:"muted"}, q.o[a][2]) : null,
-      q.x ? (() => { const box = el("div",{class:"claude-box"}); const b = el("button",{class:"btn claude",style:"justify-self:start",onclick:()=>{ showPre(box, q.x); b.remove(); }}, "Explain with Claude"); return el("div",{style:"display:grid;gap:8px;margin-top:4px"}, b, box); })()
+      q.x ? (() => { const box = el("div",{class:"claude-box"}); const b = el("button",{class:"btn claude",style:"justify-self:start",onclick:()=>{ showPre(box, q.x); b.remove(); }}, "Ask UT coach"); return el("div",{style:"display:grid;gap:8px;margin-top:4px"}, b, box); })()
         : el("span",{class:"pre muted mono"}, q.s)))) : null,
     el("button",{class:"btn primary", onclick:()=>{ exam=null; render(); }}, "New exam")];
 }
@@ -826,20 +874,39 @@ function buildBeam(stage){
   const st = LS.beam, fig = el("div"), info = el("div",{style:"display:grid;gap:8px"});
   const V = {"Steel":5.92, "Aluminum":6.32, "Water":1.48};
   const draw = () => {
-    const v = V[st.mat], lam = v/st.f, a = st.D/2, N = st.D*st.D/(4*lam), s6 = Math.min(0.99, 0.51*lam/st.D), g6 = Math.asin(s6);
-    const zmax = Math.max(3*N, 20), W=340, H=262, x0=26, x1=330, top=12, mid=88, bot=236, sx = (x1-x0)/zmax, half = 70;
-    const sy = half/Math.max(a + zmax*Math.tan(g6), a*1.2);
-    const pts = []; const lo = []; for (let i=0;i<=120;i++){ const z = i/120*zmax; const r = z < N ? a - (a*0.5)*(z/N) : a*0.5 + (z-N)*Math.tan(g6); pts.push(`${(x0+z*sx).toFixed(1)},${(mid - r*sy).toFixed(1)}`); lo.push(`${(x0+z*sx).toFixed(1)},${(mid + r*sy).toFixed(1)}`); }
-    let g = `<polygon points="${pts.join(" ")} ${lo.reverse().join(" ")}" fill="var(--signal)" fill-opacity=".22" stroke="var(--signal)" stroke-width="1.4"/>`;
-    g += `<rect x="${x0-14}" y="${mid - a*sy}" width="12" height="${2*a*sy}" fill="var(--wedge)"/>`;
-    g += `<line x1="${x0+N*sx}" y1="${top}" x2="${x0+N*sx}" y2="${bot}" stroke="var(--accent)" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${x0+N*sx+4}" y="${top+12}" fill="var(--accent)" font-size="12" font-weight="700">N = ${fmt(N)} mm</text>`;
-    g += `<text x="${x0+ (N*sx)/2}" y="${mid+half+16}" fill="var(--muted)" font-size="11" text-anchor="middle">near field</text><text x="${x0+N*sx + (x1-x0-N*sx)/2}" y="${mid+half+16}" fill="var(--muted)" font-size="11" text-anchor="middle">far field</text>`;
-    const py = []; const k = 2*Math.PI/lam; for (let i=1;i<=400;i++){ const z = i/400*zmax; const p = Math.abs(2*Math.sin(k/2*(Math.sqrt(a*a+z*z)-z))); py.push(`${(x0+z*sx).toFixed(1)},${(bot - p/2*58).toFixed(1)}`); }
-    g += `<line x1="${x0}" y1="${bot}" x2="${x1}" y2="${bot}" stroke="var(--line)"/><polyline points="${py.join(" ")}" fill="none" stroke="var(--bad)" stroke-width="1.4"/><text x="${x1}" y="${bot+16}" fill="var(--bad)" font-size="11" text-anchor="end">on-axis pressure</text>`;
-    fig.replaceChildren(svgEl(`<svg class="sim" viewBox="0 0 ${W} ${H}" role="img" aria-label="Beam with near field ${fmt(N)} mm" font-family="Atkinson Hyperlegible, system-ui, sans-serif">${g}</svg>`));
-    info.replaceChildren(el("div",{class:"readout"}, el("div",{}, el("b",{}, fmt(lam,2)+" mm"), el("span",{}, "wavelength λ")), el("div",{}, el("b",{}, fmt(N)+" mm"), el("span",{}, "near field N")), el("div",{}, el("b",{}, fmt(g6*180/Math.PI)+"°"), el("span",{}, "−6 dB half-angle"))),
-      el("p",{class:"note",style:"margin:0"}, "Inside the near field the pressure jumps up and down (red), so echo height there is unreliable for sizing. Raise the frequency or the diameter: the near field gets longer and the beam narrower."),
-      el("p",{class:"note mono",style:"margin:0"}, `N = D²·f / (4v) = ${st.D}² × ${st.f} / (4 × ${v}) = ${fmt(N)} mm`));
+    const v = V[st.mat], lam = v/st.f, a = st.D/2, N = st.D*st.D/(4*lam);
+    const g6 = Math.asin(Math.min(.99, 0.51*lam/st.D)), g0 = Math.asin(Math.min(.99, 1.22*lam/st.D));
+    const water = st.mat === "Water", zmax = water ? 1200 : 300, tick = water ? 200 : 50, ymm = water ? 60 : 40;  // fixed scales, so changes are visible
+    const W=340, H=300, x0=30, x1=332, mid=96, half=78, bot=272, sx=(x1-x0)/zmax, sy=half/ymm;
+    const X = z => x0 + Math.min(z, zmax)*sx, Y = r => mid - r*sy;
+    const r6 = z => z <= N ? a - 0.5*a*(z/N) : 0.5*a + (z-N)*Math.tan(g6);
+    const top = [], low = []; for (let i=0;i<=200;i++){ const z = i/200*zmax; top.push(`${X(z).toFixed(1)},${Y(r6(z)).toFixed(1)}`); low.push(`${X(z).toFixed(1)},${(mid + r6(z)*sy).toFixed(1)}`); }
+    let g = `<defs><clipPath id="bclip"><rect x="${x0}" y="${mid-half}" width="${x1-x0}" height="${2*half}"/></clipPath></defs>`;
+    g += `<g clip-path="url(#bclip)"><polygon points="${top.join(" ")} ${low.reverse().join(" ")}" fill="var(--signal)" fill-opacity=".22" stroke="var(--signal)" stroke-width="1.4"/>`;
+    if (N < zmax) { const zE = zmax; g += `<line x1="${X(N)}" y1="${Y(0.5*a)}" x2="${X(zE)}" y2="${Y(0.5*a + (zE-N)*Math.tan(g0))}" stroke="var(--signal)" stroke-dasharray="4 4"/><line x1="${X(N)}" y1="${mid+0.5*a*sy}" x2="${X(zE)}" y2="${mid + (0.5*a + (zE-N)*Math.tan(g0))*sy}" stroke="var(--signal)" stroke-dasharray="4 4"/>`; }
+    g += `</g>`;
+    g += `<line x1="${x0}" y1="${mid}" x2="${x1}" y2="${mid}" stroke="var(--muted)" stroke-width=".6" stroke-dasharray="2 4"/>`;
+    g += `<rect x="${x0-10}" y="${Y(a)}" width="9" height="${2*a*sy}" fill="var(--wedge)" stroke="var(--ink)" stroke-width=".6"/>`;
+    g += `<line x1="${x0-16}" y1="${Y(a)}" x2="${x0-16}" y2="${mid+a*sy}" stroke="var(--ink)" stroke-width="1"/><text x="${x0-19}" y="${mid+4}" fill="var(--ink)" font-size="10" text-anchor="end" transform="rotate(-90 ${x0-19} ${mid+4})">D ${st.D}</text>`;
+    if (N <= zmax) {
+      g += `<line x1="${X(N)}" y1="${mid-half}" x2="${X(N)}" y2="${bot}" stroke="var(--accent)" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+      g += `<text x="${Math.min(X(N)+4, x1-70)}" y="${mid-half+12}" fill="var(--accent)" font-size="12" font-weight="700">N = ${fmt(N)} mm</text>`;
+      g += `<line x1="${x0}" y1="${mid+half+8}" x2="${X(N)}" y2="${mid+half+8}" stroke="var(--accent)" stroke-width="2"/>`;
+      g += `<text x="${Math.max((x0+X(N))/2, x0+24)}" y="${mid+half+20}" fill="var(--accent)" font-size="10" text-anchor="middle">near field</text>`;
+      const gx = Math.min(X(N) + 60, x1 - 20), gy = Y(0.5*a + (Math.min(N+60/sx, zmax)-N)*Math.tan(g6)) - 8;
+      g += `<text x="${gx}" y="${Math.max(mid-half+26, gy)}" fill="var(--signal)" font-size="11" font-weight="700" text-anchor="middle">γ ${fmt(g6*180/Math.PI)}°</text>`;
+    } else {
+      g += `<text x="${x1-4}" y="${mid-half+12}" fill="var(--accent)" font-size="12" font-weight="700" text-anchor="end">N = ${fmt(N)} mm (off screen) →</text>`;
+      g += `<line x1="${x0}" y1="${mid+half+8}" x2="${x1}" y2="${mid+half+8}" stroke="var(--accent)" stroke-width="2"/><text x="${(x0+x1)/2}" y="${mid+half+20}" fill="var(--accent)" font-size="10" text-anchor="middle">all near field</text>`;
+    }
+    for (let z=0; z<=zmax; z+=tick) g += `<line x1="${X(z)}" y1="${bot}" x2="${X(z)}" y2="${bot+4}" stroke="var(--muted)"/><text x="${X(z)}" y="${bot+15}" fill="var(--muted)" font-size="9" text-anchor="middle">${z}</text>`;
+    g += `<text x="${x1}" y="${bot+26}" fill="var(--muted)" font-size="9" text-anchor="end">distance from probe (mm)</text>`;
+    const k = 2*Math.PI/lam, py = []; for (let i=1;i<=700;i++){ const z = i/700*zmax; const p = Math.abs(2*Math.sin(k/2*(Math.sqrt(a*a+z*z)-z))); py.push(`${X(z).toFixed(1)},${(bot - p/2*46).toFixed(1)}`); }
+    g += `<line x1="${x0}" y1="${bot}" x2="${x1}" y2="${bot}" stroke="var(--line)"/><polyline points="${py.join(" ")}" fill="none" stroke="var(--bad)" stroke-width="1.3"/><text x="${x0+2}" y="${bot-52}" fill="var(--bad)" font-size="10">on-axis pressure</text>`;
+    fig.replaceChildren(svgEl(`<svg class="sim" viewBox="0 0 ${W} ${H}" role="img" aria-label="Beam: near field ${fmt(N)} mm, spread ${fmt(g6*180/Math.PI)} degrees" font-family="Atkinson Hyperlegible, system-ui, sans-serif">${g}</svg>`));
+    info.replaceChildren(el("div",{class:"readout"}, el("div",{}, el("b",{}, fmt(lam,2)+" mm"), el("span",{}, "wavelength λ")), el("div",{}, el("b",{}, fmt(N)+" mm"), el("span",{}, "near field N")), el("div",{}, el("b",{}, fmt(g6*180/Math.PI)+"°"), el("span",{}, "−6 dB half-angle γ")), el("div",{}, el("b",{}, fmt(g0*180/Math.PI)+"°"), el("span",{}, "edge (null) angle, dashed"))),
+      el("p",{class:"note",style:"margin:0"}, "Raise the frequency or the diameter: the near field gets longer and the beam spreads less. Inside the near field the pressure jumps up and down (red), so echo height there is unreliable for sizing."),
+      el("p",{class:"note mono",style:"margin:0"}, `N = D²·f / (4v) = ${st.D}² × ${st.f} / (4 × ${v}) = ${fmt(N)} mm\nsin γ = 0.51·λ / D = 0.51 × ${fmt(lam,2)} / ${st.D}`));
   };
   stage.append(fig,
     slider("beam-f", "Frequency", 1, 10, 0.25, st.f, "MHz", v => { st.f = v; draw(); }),
@@ -892,20 +959,49 @@ const EXAMPLE_TEAM = (() => {
 })();
 function meAsMember(){ return Object.assign({id: TEAM ? TEAM.uid : "me", name:"You", isMe:true}, memberBody()); }
 function teamMembers(){
-  if (TEAM) { const list = TEAMDATA.members.slice(); if (!list.some(m => m.id === TEAM.uid)) list.push(meAsMember()); return list.map(m => m.id === TEAM.uid ? Object.assign(m, meAsMember()) : m); }
+  if (TEAM) { const list = TEAMDATA.members.filter(m => m.id !== TEAM.uid); return list.concat([meAsMember()]); }
   return EXAMPLE_TEAM.concat([meAsMember()]);
 }
-function nameOf(m){ return m.isMe ? "You" : (m.name || TEAMDATA.names[m.id] || "Team member"); }
-async function resolveNames(ids){ if (!TEAM) return; try { const ps = await TEAM.user.profiles(ids); let changed = false; for (const id of ids) { const n = ps[id]?.name || ""; if (n && TEAMDATA.names[id] !== n) { TEAMDATA.names[id] = n; changed = true; } } if (changed && tab === "team") render(); } catch(e) {} }
+function boardRows(){
+  if (TEAM) { const list = TEAMDATA.board.filter(m => m.id !== TEAM.uid); return list.concat([meAsMember()]); }
+  return teamMembers();
+}
+function nameOf(m){ return m.isMe ? "You" : (m.name || "Team member"); }
+function googleMark(){ return svgEl(`<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>`); }
+function signInCard(){
+  if (AUTH.state === "off") return el("div",{class:"banner"}, el("strong",{},"Example team. "), AUTH.msg || "This demo shows made-up people. In the team version, everyone signs in with their Google (Gmail) account and this page shows your real team, live.");
+  if (AUTH.state === "loading") return el("div",{class:"panel"}, el("div",{class:"thinking"}, el("span",{class:"dot"}), "Checking your team…"));
+  if (AUTH.state === "denied") return el("div",{class:"panel"}, el("strong",{}, "You're signed in, but not on the team list yet"),
+    el("p",{style:"margin:0"}, `Ask your manager to add `, el("b",{}, AUTH.user && AUTH.user.email || "your email"), " in the Team tab. Until then, your progress stays on this device."),
+    el("button",{class:"btn", style:"justify-self:start", onclick: signOut}, "Use a different account"));
+  if (AUTH.state === "signedout") return el("div",{class:"panel"}, el("strong",{}, "Join your team"),
+    el("p",{style:"margin:0"}, "Sign in with your Google (Gmail) account to save your progress to your team, appear on the leaderboard and practice your company's procedures."),
+    el("button",{class:"btn", style:"justify-self:start;display:inline-flex;gap:10px;align-items:center", onclick: signIn}, googleMark(), "Sign in with Google"),
+    AUTH.msg ? el("p",{class:"note",style:"margin:0;color:var(--bad)"}, AUTH.msg) : null,
+    el("p",{class:"note",style:"margin:0"}, "Below is an example team so you can see what it looks like."));
+  return null;
+}
+function accessPanel(){
+  const add = el("input",{type:"text", id:"team-add", placeholder:"name@gmail.com", inputmode:"email", autocomplete:"off", style:"flex:1;min-width:0"});
+  const doAdd = asMgr => { const v = add.value.trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { toast("Enter a full email address"); return; } changeAccess(asMgr ? "managers" : "members", v, false); add.value = ""; };
+  const row = (email, list) => el("div",{class:"review",style:"grid-template-columns:1fr auto;align-items:center"}, el("span",{}, email, list === "managers" ? el("span",{class:"note"}, "  · manager") : null),
+    email === TEAM.email ? el("span",{class:"note"}, "you") : el("button",{class:"btn",style:"min-height:34px;padding:4px 10px",onclick:()=>changeAccess(list, email, true)}, "Remove"));
+  return el("div",{class:"panel",style:"gap:6px"}, el("strong",{}, "Who's on the team"),
+    el("p",{class:"note",style:"margin:0"}, "Only these Google accounts can sign in to the team. Add a colleague's Gmail address, then send them the link."),
+    ...TEAMDATA.access.managers.map(e => row(e, "managers")), ...TEAMDATA.access.members.filter(e => !TEAMDATA.access.managers.includes(e)).map(e => row(e, "members")),
+    el("div",{class:"row"}, add, el("button",{class:"btn primary", onclick:()=>doAdd(false)}, "Add")),
+    el("button",{class:"btn",style:"justify-self:start;min-height:34px;padding:4px 10px",onclick:()=>doAdd(true)}, "Add as manager"));
+}
 function teamView(){
   const members = teamMembers(), manager = TEAM ? TEAM.manager : true;
-  if (TEAM) resolveNames(members.filter(m => !m.isMe).map(m => m.id));
-  const nodes = [el("h2",{}, TEAM ? "Your team" : "Team")];
-  if (!TEAM) nodes.push(el("div",{class:"banner"}, el("strong",{},"Example team. "), "This demo shows made-up people. In the team version, each person signs in with Claude and this page shows your real team, live."));
-  else if (!manager) nodes.push(el("p",{class:"note"}, "Your manager can see your topic confidence, activity and certification date here, to plan training."));
+  const nodes = [el("div",{class:"row",style:"justify-content:space-between"}, el("h2",{}, TEAM ? "Your team" : "Team"),
+    TEAM ? el("button",{class:"btn",style:"min-height:34px;padding:4px 10px",onclick:signOut}, "Sign out") : null)];
+  if (TEAM) nodes.push(el("p",{class:"note",style:"margin:0"}, `Signed in as ${TEAM.email}${TEAM.manager ? " · manager" : ""}`));
+  const card = signInCard(); if (card) nodes.push(card);
+  if (TEAM && !manager) nodes.push(el("p",{class:"note"}, "Your manager can see your topic confidence, activity and certification date, to plan training."));
   const wk = weekId();
-  const lb = members.map(m => ({m, xp: m.wk === wk ? (m.wkXp||0) : 0})).sort((a,b) => b.xp - a.xp);
-  nodes.push(el("h3",{class:"sec"}, "This week's leaderboard"), el("div",{class:"lb"}, ...lb.slice(0, 8).map((x,i) => el("div",{class:"lbrow" + (x.m.isMe ? " me" : "")}, el("span",{class:"rk"}, String(i+1)), el("span",{}, nameOf(x.m), x.m.streak ? el("span",{class:"note"}, `  ·  ${x.m.streak}-day streak`) : null), el("b",{}, `${x.xp} XP`)))));
+  const lb = boardRows().map(m => ({m, xp: m.wk === wk ? (m.wkXp||0) : 0})).sort((a,b) => b.xp - a.xp);
+  nodes.push(el("h3",{class:"sec"}, "This week's leaderboard"), el("div",{class:"lb"}, ...lb.slice(0, 10).map((x,i) => el("div",{class:"lbrow" + (x.m.isMe ? " me" : "")}, el("span",{class:"rk"}, String(i+1)), el("span",{}, nameOf(x.m), x.m.streak ? el("span",{class:"note"}, `  ·  ${x.m.streak}-day streak`) : null), el("b",{}, `${x.xp} XP`)))));
   if (manager) {
     const ts = topicsFor("III");
     const tbl = el("table",{class:"team"});
@@ -916,7 +1012,7 @@ function teamView(){
       const due = ts.filter(t => isDue(m.m?.[t] ?? 0, m.t?.[t] || 0, m.a?.[t] || 0)).length;
       const act = m.lastActive ? daysSince(m.lastActive) : null;
       const cert = m.cert ? dayNum(m.cert) - dayNum(todayStr()) : null;
-      tb.append(el("tr",{}, el("td",{class:"name", "data-uid": m.id}, nameOf(m)), ...cells,
+      tb.append(el("tr",{}, el("td",{class:"name", title: m.email || ""}, nameOf(m)), ...cells,
         el("td",{style: due ? "color:var(--bad);font-weight:700" : ""}, String(due)),
         el("td",{style: act != null && act > 14 ? "color:var(--bad);font-weight:700" : ""}, act == null ? "—" : act === 0 ? "today" : `${act}d`),
         el("td",{style: cert != null && cert <= 90 ? "color:var(--bad);font-weight:700" : ""}, cert == null ? "—" : cert < 0 ? "expired" : `${cert}d`)));
@@ -929,6 +1025,7 @@ function teamView(){
     if (flagged.length) nodes.push(el("div",{class:"panel"}, el("strong",{}, "Needs attention"), ...flagged.map(m => { const act = m.lastActive ? daysSince(m.lastActive) : null; const cert = m.cert ? dayNum(m.cert) - dayNum(todayStr()) : null;
       const why = [act != null && act > 14 ? `no practice for ${act} days` : "", cert != null && cert <= 90 ? (cert < 0 ? "certification expired" : `recertification in ${cert} days`) : ""].filter(Boolean).join(", ");
       return el("div",{class:"review"}, el("span",{}, nameOf(m)), el("span",{class:"note"}, why)); })));
+    if (TEAM) nodes.push(accessPanel());
   }
   nodes.push(...procSection(manager));
   return nodes;
@@ -948,18 +1045,36 @@ function procSection(manager){
           ? el("span",{class:"row"}, el("button",{class:"btn",onclick:()=>{procState.confirmDel=null;render();}},"Keep"), el("button",{class:"btn",style:"border-color:var(--bad);color:var(--bad)",onclick:()=>deleteProc(p)},"Delete"))
           : el("button",{class:"btn",onclick:()=>{procState.confirmDel=p.id;render();}},"Delete")) : null));
   })));
+  if (TEAM && TEAM.manager) nodes.push(importPanel());
   const canGen = !!sample && (!TEAM || TEAM.manager);
-  if (!canGen) { nodes.push(el("p",{class:"note"}, TEAM ? "Your manager adds procedures here. Claude turns each one into practice questions for the team." : "In the team version, a manager pastes a procedure here and Claude writes practice questions from it for everyone.")); return nodes; }
+  if (!canGen) { if (!TEAM || !TEAM.manager) nodes.push(el("p",{class:"note"}, TEAM ? "Your manager adds procedures here, and the UT coach turns each one into practice questions for the team." : "In the team version, a manager adds your company's procedures here and the UT coach turns them into practice questions for everyone.")); return nodes; }
   const title = el("input",{type:"text", id:"proc-title", placeholder:"Procedure name, e.g. UT-PR-12 Rev 3", style:"width:100%", oninput:e => procState.title = e.target.value}); title.value = procState.title;
   const ta = el("textarea",{id:"proc-text", placeholder:"Paste the procedure text here (scope, equipment, calibration, scanning, recording, acceptance…)", style:"min-height:140px", oninput:e => procState.text = e.target.value}); ta.value = procState.text;
   const file = el("input",{type:"file", id:"proc-file", accept:".txt,.md,text/plain", onchange: async e => { const f = e.target.files[0]; if (!f) return; try { procState.text = (await f.text()).slice(0, 60000); if (!procState.title) procState.title = f.name.replace(/\.[^.]+$/,""); render(); } catch(err) { procState.msg = "That file couldn't be read. Paste the text instead."; render(); } }});
   nodes.push(el("div",{class:"panel"}, el("strong",{}, "Add a procedure"),
-    el("p",{class:"note",style:"margin:0"}, TEAM ? "Claude reads it and writes questions the whole team can practice." : "Claude reads it and writes practice questions. They're saved on this device."),
+    el("p",{class:"note",style:"margin:0"}, TEAM ? "The UT coach reads it and writes questions the whole team can practice." : "The UT coach reads it and writes practice questions. They're saved on this device."),
     title, ta, el("label",{class:"note", for:"proc-file"}, "Or load a .txt file: ", file),
-    procState.busy ? el("div",{class:"thinking"}, el("span",{class:"dot"}), "Claude is writing questions…", el("button",{class:"btn",style:"margin-left:auto;min-height:36px;padding:4px 12px",onclick:()=>procState.ctl?.abort()},"Stop"))
-      : el("button",{class:"btn primary", style:"justify-self:start", onclick: generateProc}, "Write questions with Claude"),
+    procState.busy ? el("div",{class:"thinking"}, el("span",{class:"dot"}), "Writing questions…", el("button",{class:"btn",style:"margin-left:auto;min-height:36px;padding:4px 12px",onclick:()=>procState.ctl?.abort()},"Stop"))
+      : el("button",{class:"btn primary", style:"justify-self:start", onclick: generateProc}, "Write questions with the UT coach"),
     procState.msg ? el("p",{class:"note",style:"margin:0;color:var(--bad)"}, procState.msg) : null));
   return nodes;
+}
+function importPanel(){
+  const file = el("input",{type:"file", id:"proc-json", accept:".json,application/json", onchange: async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      const qs = (d.questions || []).filter(q => q && typeof q.q === "string" && Array.isArray(q.options) && q.options.length === 4 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < 4)
+        .map(q => ({q: String(q.q), options: q.options.map(String), answer: q.answer, why: String(q.why || ""), mistakes: (q.mistakes || []).map(String).slice(0,4)}));
+      if (qs.length < 3 || !d.title) throw new Error("bad");
+      await FB.db.collection("procedures").add({title: String(d.title), summary: String(d.summary || ""), questions: qs, createdAt: Date.now(), by: TEAM.uid});
+      toast(`${qs.length} questions added for the team`);
+    } catch(err) { toast("That file isn't a UT coach question file."); }
+    e.target.value = "";
+  }});
+  return el("div",{class:"panel"}, el("strong",{}, "Add a procedure for the team"),
+    el("p",{class:"note",style:"margin:0"}, "Load a UT coach question file (.json) made from your procedure. Everyone on the team can practice it right away."),
+    el("label",{class:"note", for:"proc-json"}, "Question file: ", file));
 }
 async function generateProc(){
   const text = (procState.text || "").trim(), title = (procState.title || "").trim() || "Untitled procedure";
@@ -983,20 +1098,20 @@ ${text.slice(0, 40000)}
       .map(q => ({q: String(q.q), options: q.options.map(String), answer: q.answer, why: String(q.why || ""), mistakes: (q.mistakes || []).map(String).slice(0,4)}));
     if (qs.length < 3) throw {code:"invalid_json"};
     const proc = {title, summary: String(r.summary || ""), questions: qs, createdAt: Date.now()};
-    if (TEAM && TEAM.manager) { await TEAM.db.collection("procedures").add(Object.assign({by: TEAM.uid}, proc)); }
+    if (TEAM && TEAM.manager) { await FB.db.collection("procedures").add(Object.assign({by: TEAM.uid}, proc)); }
     else { S.procs = [Object.assign({id: "local-" + Date.now(), local:true}, proc), ...(S.procs || [])]; save(); }
     procState = {busy:false, msg:"", ctl:null, title:"", text:"", confirmDel:null};
     toast(`${qs.length} questions added`);
   } catch(e) {
     procState.busy = false;
-    if (e?.code !== "cancelled") procState.msg = e?.code === "quota_exceeded" ? "The team storage is full. Delete an old procedure first." : (ERR[e?.code] || "Claude couldn't write questions from that text. Try a shorter or clearer section.");
+    if (e?.code !== "cancelled") procState.msg = e?.code === "quota_exceeded" ? "The team storage is full. Delete an old procedure first." : (ERR[e?.code] || "The UT coach couldn't write questions from that text. Try a shorter or clearer section.");
   }
   render();
 }
 async function deleteProc(p){
   procState.confirmDel = null;
   if (p.local) { S.procs = (S.procs||[]).filter(x => x.id !== p.id); save(); }
-  else if (TEAM) { try { await TEAM.db.doc("procedures/" + p.id).delete(); } catch(e) { toast("Couldn't delete it. Try again."); } }
+  else if (TEAM) { try { await FB.db.collection("procedures").doc(p.id).delete(); } catch(e) { toast("Couldn't delete it. Try again."); } }
   render();
 }
 
@@ -1011,14 +1126,14 @@ function askView(){
     if (open) showPre(box, f);
     return el("div",{class:"review"}, el("button",{class:"faq-q","aria-expanded":String(open),onclick:()=>{ faqOpen = open ? null : i; render(); }}, f.q), open ? box : null);
   }));
-  return [el("h2",{},"Ask Claude"),
+  return [el("h2",{},"Ask UT coach"),
     el("p",{class:"muted",style:"margin:0"}, "Answers in plain English, usually with a sketch."),
     sample ? ta : null,
     sample ? el("button",{class:"btn primary", onclick: go}, "Ask") : null,
     askBox && askBox.childNodes.length ? el("div",{class:"panel"}, askBox) : null,
     el("h3",{class:"sec"}, "Common questions"),
     faqList,
-    !sample ? el("p",{class:"note"}, "To ask your own questions, open the coach inside Claude.") : null];
+    null];
 }
 
 /* =============== render =============== */
