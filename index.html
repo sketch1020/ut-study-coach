@@ -102,7 +102,71 @@ textarea{width:100%;min-height:84px;resize:vertical;border:1px solid var(--line)
 .faq-q::after{content:"+";color:var(--signal);font-family:var(--mono)}
 .faq-q[aria-expanded="true"]::after{content:"−"}
 .confirm{background:var(--bad-bg);border:1px solid var(--bad);border-radius:10px;padding:12px;display:grid;gap:8px}
+
+/* ---- v2 additions ---- */
+.seg{display:flex;gap:4px;background:var(--sunk);border-radius:10px;padding:3px}
+.seg button{flex:1;border:0;background:none;padding:8px 6px;border-radius:8px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
+.hero{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:2px;min-width:0}
+.tile b{font-family:var(--mono);font-weight:500;font-size:24px;line-height:1.1}
+.tile span{font-size:12px;color:var(--muted)}
+.tile svg{width:18px;height:18px;vertical-align:-3px}
+.daily{background:var(--ink);color:var(--bg);border-radius:14px;padding:16px;display:grid;gap:10px}
+.daily h2{color:var(--bg)}
+.daily p{margin:0;opacity:.85}
+.daily .btn.primary{justify-self:start}
+.pips{display:flex;gap:6px}
+.pips i{width:22px;height:6px;border-radius:3px;background:color-mix(in srgb,var(--bg) 30%,transparent)}
+.pips i.ok{background:var(--good)} .pips i.no{background:var(--bad)}
+.conf{display:grid;gap:10px}
+.crow{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:15px}
+.crow .track{grid-column:1/-1;height:10px;border-radius:5px;background:var(--sunk);overflow:hidden;position:relative}
+.crow .lost{position:absolute;top:0;bottom:0;border-radius:5px;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--bad) 45%,transparent) 0 4px,transparent 4px 8px)}
+.crow .now{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.crow .meta{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.crow .n{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.chip.due{border-color:var(--bad);color:var(--bad);font-weight:700}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 10px 5px 6px;font-size:13px;background:var(--surface)}
+.badge i{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--accent)}
+.badge.off{opacity:.45}
+.badge.off i{background:var(--muted)}
+.banner{border:1px dashed var(--accent);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--ink);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table.team{border-collapse:collapse;font-size:13px;min-width:100%}
+table.team th,table.team td{padding:6px 6px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+table.team th{font-weight:700;color:var(--muted);font-size:11px;letter-spacing:.04em;text-transform:uppercase;vertical-align:bottom}
+table.team th.v{writing-mode:vertical-rl;transform:rotate(180deg);height:100px;text-align:left;text-transform:none;letter-spacing:0;font-size:11px}
+table.team td.name,table.team th.name{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+table.team td.cell{font-family:var(--mono);font-size:12px;color:#fff;min-width:34px}
+table.team tr:last-child td{border-bottom:0}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.lb{display:grid;gap:6px}
+.lbrow{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.lbrow.me{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.lbrow b{font-family:var(--mono);font-weight:500}
+.lbrow .rk{font-family:var(--mono);color:var(--muted);text-align:center}
+.scope{width:100%;display:block;border-radius:8px;background:#0c1410}
+.lab svg.sim{width:100%;display:block;border-radius:10px;background:var(--sunk)}
+.ctl{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:14px}
+.ctl input[type=range]{width:100%;accent-color:var(--accent)}
+.ctl output{font-family:var(--mono);min-width:64px;text-align:right}
+select,input[type=date],input[type=text]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.readout div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.readout b{display:block;font-family:var(--mono);font-weight:500;font-size:18px}
+.readout span{font-size:12px;color:var(--muted)}
+.status{font-weight:700}
+.status.good{color:var(--good)} .status.bad{color:var(--bad)} .status.warn{color:var(--accent)}
+.proc{display:grid;gap:4px;padding-block:10px;border-bottom:1px solid var(--line)}
+.proc:last-child{border-bottom:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;z-index:20;box-shadow:0 4px 16px rgb(0 0 0 / .25)}
+.xp{font-family:var(--mono);color:var(--good);font-weight:500}
 </style>
+
 
 <div class="app">
   <header>
@@ -120,8 +184,9 @@ textarea{width:100%;min-height:84px;resize:vertical;border:1px solid var(--line)
 <script>
 "use strict";
 const DATA = JSON.parse(document.getElementById("bank").textContent);
-const TOPICS = DATA.topics, BANK = DATA.bank, LEVELS = ["I","II","III"];
+const TOPICS = DATA.topics, BANK = DATA.bank, LEVELS = ["I","II","III"], FAQ = DATA.faq || [];
 const BKT = {init:.15, learn:.18, slip:.10, guess:.25};
+const DAY = 864e5, HALF_LIFE = 45;          // confidence halves (toward the starting level) after 45 days without practice
 const $ = (s, r=document) => r.querySelector(s);
 const el = (tag, attrs={}, ...kids) => {
   const e = document.createElement(tag);
@@ -132,70 +197,215 @@ const el = (tag, attrs={}, ...kids) => {
   for (const k of kids.flat()) if (k !== null && k !== undefined && k !== false) e.append(k.nodeType ? k : String(k));
   return e;
 };
-
-/* ---------------- student model (kept in this browser) ---------------- */
-const KEY = "ut-coach-v1";
-function freshState(){ const m={},a={},c={}; for (const t of TOPICS){m[t]=BKT.init;a[t]=0;c[t]=0;} return {level:"II",mastery:m,attempts:a,correct:c,mistakes:{},recent:[]}; }
-let S = freshState();
-try { const raw = localStorage.getItem(KEY); if (raw) { const d = JSON.parse(raw); S = Object.assign(freshState(), d); for (const t of TOPICS){ if (S.mastery[t]==null){S.mastery[t]=BKT.init;S.attempts[t]=0;S.correct[t]=0;} } } } catch(e) {}
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }
-
+const svgEl = html => { const d = el("div"); d.innerHTML = html.trim(); return d.firstChild; };
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const pick = a => a[Math.floor(Math.random()*a.length)];
 const rank = l => LEVELS.indexOf(l);
+const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
+const fmt = (x, nd=1) => Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(nd);
+const pct = x => Math.round(x*100) + "%";
+const todayStr = (d=new Date()) => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const dayNum = s => Math.round(new Date(s+"T12:00:00").getTime()/DAY);
+const weekId = () => Math.floor((Date.now()/DAY + 3) / 7);
+const SHORT = {"Wave physics":"Waves","Impedance & reflection":"Impedance","Refraction & critical angles":"Refraction","Near field & beam spread":"Near field","Decibels & attenuation":"dB","Angle-beam geometry":"Angle beam","Thickness & time of flight":"Thickness","Immersion testing":"Immersion","Transducers & equipment":"Probes","Calibration & sizing":"Calibration","Techniques & displays":"Displays"};
+
+/* =============== student state (this device; mirrored to the team store in team mode) =============== */
+const KEY = "ut-coach-v2";
+function fresh(){ const m={},t={},a={},c={}; for (const x of TOPICS){ m[x]=BKT.init; t[x]=0; a[x]=0; c[x]=0; }
+  return {v:2, level:"II", m, t, a, c, mistakes:{}, recent:[], xp:0, wk:weekId(), wkXp:0, streak:0, lastDay:"", daily:{day:"", n:0, ok:[]},
+          screenOk:0, examBest:0, cert:"", pm:{}, procs:[], lastActive:0, seen:{}}; }
+let S = fresh();
+try {
+  const raw = localStorage.getItem(KEY);
+  if (raw) S = Object.assign(fresh(), JSON.parse(raw));
+  else { const old = JSON.parse(localStorage.getItem("ut-coach-v1") || "null");           // carry over v1 progress
+    if (old) { S.level = old.level || "II"; for (const x of TOPICS) { S.m[x] = old.mastery?.[x] ?? BKT.init; S.a[x] = old.attempts?.[x] || 0; S.c[x] = old.correct?.[x] || 0; if (S.a[x]) S.t[x] = Date.now(); } S.mistakes = old.mistakes || {}; } }
+  for (const x of TOPICS) { if (S.m[x] == null) { S.m[x]=BKT.init; S.t[x]=0; S.a[x]=0; S.c[x]=0; } }
+} catch(e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} syncTeam(); }
+
+const effOf = (m, t) => !t ? m : BKT.init + (m - BKT.init) * Math.pow(0.5, (Date.now() - t) / DAY / HALF_LIFE);
+const eff = topic => effOf(S.m[topic], S.t[topic]);
+const daysSince = t => t ? Math.floor((Date.now() - t) / DAY) : null;
+const isDue = (m, t, a) => a > 0 && t && ((Date.now()-t)/DAY >= 21 || m - effOf(m, t) > 0.12);
 const topicsFor = lv => TOPICS.filter(t => BANK.some(q => q.t === t && rank(q.l) <= rank(lv)));
-function update(topic, ok, mistake){
-  const p = S.mastery[topic], s = BKT.slip, g = BKT.guess;
-  const post = ok ? p*(1-s)/(p*(1-s)+(1-p)*g) : p*s/(p*s+(1-p)*(1-g));
-  S.mastery[topic] = post + (1-post)*BKT.learn;
-  S.attempts[topic]++; if (ok) S.correct[topic]++;
-  if (!ok && mistake) {
-    const parts = mistake.split(". ");
-    let key = (parts[0].length >= 30 || parts.length === 1) ? parts[0] : parts[0] + ". " + parts[1];
-    key = key.replace(/\.$/,"").slice(0,110);
-    S.mistakes[key] = (S.mistakes[key]||0) + 1;
+const readiness = () => { const ts = topicsFor(S.level); return ts.reduce((s,t)=>s+eff(t),0)/ts.length; };
+
+function bkt(p, ok){ const s=BKT.slip, g=BKT.guess; const post = ok ? p*(1-s)/(p*(1-s)+(1-p)*g) : p*s/(p*s+(1-p)*(1-g)); return post + (1-post)*BKT.learn; }
+function mistakeKey(m){ const parts = m.split(". "); let k = (parts[0].length >= 30 || parts.length === 1) ? parts[0] : parts[0] + ". " + parts[1]; return k.replace(/\.$/,"").slice(0,110); }
+function addXP(n){ if (S.wk !== weekId()) { S.wk = weekId(); S.wkXp = 0; } S.xp += n; S.wkXp += n; }
+function record(q, ok, mistake){
+  const before = earnedBadges();
+  if (q.k === "proc") {
+    const p = S.pm[q.procId] || (S.pm[q.procId] = {m:BKT.init, t:0, a:0, c:0});
+    p.m = bkt(effOf(p.m, p.t), ok); p.t = Date.now(); p.a++; if (ok) p.c++;
+  } else {
+    const topic = q.t;
+    S.m[topic] = bkt(eff(topic), ok); S.t[topic] = Date.now(); S.a[topic]++; if (ok) S.c[topic]++;
+    S.recent = [...S.recent, topic].slice(-3);
   }
-  S.recent = [...S.recent, topic].slice(-3);
+  if (!ok && mistake) { const k = mistakeKey(mistake); S.mistakes[k] = (S.mistakes[k]||0) + 1; }
+  if (ok && q.k === "screen") S.screenOk++;
+  S.lastActive = Date.now();
+  addXP(ok ? 10 : 3);
   save();
+  toast(`+${ok ? 10 : 3} XP`);
+  announceBadges();
 }
-function gamma(k){ // Marsaglia-Tsang
-  if (k < 1) return gamma(k+1) * Math.pow(Math.random(), 1/k);
-  const d = k - 1/3, c = 1/Math.sqrt(9*d);
-  for(;;){ let x, v; do { const u1=Math.random(), u2=Math.random(); x = Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2); v = 1 + c*x; } while (v <= 0);
-    v = v*v*v; const u = Math.random(); if (Math.log(u) < .5*x*x + d - d*v + d*Math.log(v)) return d*v; }
-}
-const beta = (a,b) => { const x = gamma(a); return x/(x+gamma(b)); };
+
+/* =============== question sources =============== */
 function nextTopic(){
   let best=null, score=-1;
   for (const t of topicsFor(S.level)) {
-    const m = S.mastery[t], n = S.attempts[t];
+    const m = eff(t), n = S.a[t];
     let x = beta(1+(1-m)*(n+2), 1+m*(n+2));
+    if (isDue(S.m[t], S.t[t], S.a[t])) x *= 1.4;
     if (S.recent.slice(-2).includes(t)) x *= .35;
     if (x > score) { best = t; score = x; }
   }
   return best;
 }
-const readiness = () => { const ts = topicsFor(S.level); return ts.reduce((s,t)=>s+S.mastery[t],0)/ts.length; };
-const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-const pick = a => a[Math.floor(Math.random()*a.length)];
+function gamma(k){ if (k < 1) return gamma(k+1) * Math.pow(Math.random(), 1/k);
+  const d = k - 1/3, c = 1/Math.sqrt(9*d);
+  for(;;){ let x, v; do { const u1=Math.random()||1e-9, u2=Math.random(); x = Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2); v = 1 + c*x; } while (v <= 0);
+    v = v*v*v; const u = Math.random(); if (Math.log(u) < .5*x*x + d - d*v + d*Math.log(v)) return d*v; } }
+const beta = (a,b) => { const x = gamma(a); return x/(x+gamma(b)); };
+
 let lastQ = null;
 function makeQuestion(topic){
+  const gens = SCREEN.filter(g => g.t === topic && rank(g.l) <= rank(S.level));
+  if (gens.length && Math.random() < 0.3) return pick(gens).make();
   let pool = BANK.filter(q => q.t === topic && rank(q.l) <= rank(S.level) && q !== lastQ);
   if (!pool.length) pool = BANK.filter(q => q.t === topic);
   const q = pick(pool); lastQ = q;
-  return Object.assign({}, q);   // option order is fixed: Claude's explanations refer to the letters
+  return Object.assign({}, q);              // option order fixed: Claude's explanations refer to the letters
 }
 
-/* ---------------- header gauge: readiness drawn as an echo on an A-scan ---------------- */
-function drawGauge(){
-  const r = readiness(), h = 4 + r*28, base = 34;
-  const pts = []; for (let x=0;x<=84;x+=1){ let y = base - (Math.random()*1.4);
-    if (x>=6 && x<=10) y = base - 30*Math.exp(-((x-8)**2)/2);
-    if (x>=50 && x<=62) y = base - h*Math.exp(-((x-56)**2)/3)*Math.abs(Math.cos((x-56)*1.6));
-    pts.push(x+","+y.toFixed(1)); }
-  $("#ascan").innerHTML = `<line x1="44" x2="70" y1="${base-26*0.5}" y2="${base-26*0.5}" stroke="var(--accent)" stroke-width="1.2"/>
-   <polyline points="${pts.join(" ")}" fill="none" stroke="var(--signal)" stroke-width="1.3"/>`;
-  $("#ready").textContent = Math.round(r*100) + "%";
+/* ---------- read-the-screen generators ---------- */
+const rnd = (a,b) => a + Math.random()*(b-a);
+function options(correct, wrongs, unit, nd=1){
+  const o = [[`${fmt(correct,nd)} ${unit}`.trim(), 1, ""]]; const seen = new Set([o[0][0]]);
+  for (const [v, why] of wrongs) { if (!isFinite(v) || v <= 0) continue; const t = `${fmt(v,nd)} ${unit}`.trim(); if (seen.has(t)) continue; seen.add(t); o.push([t, 0, why]); if (o.length === 4) break; }
+  let k = 1.37; while (o.length < 4) { const t = `${fmt(correct*k,nd)} ${unit}`.trim(); if (!seen.has(t)) { seen.add(t); o.push([t, 0, "That value does not match the screen. Count the divisions again."]); } k = k > 1 ? 0.61 : k*1.9; }
+  return shuffle(o);
+}
+const SCREEN = [
+  { t:"Thickness & time of flight", l:"I", make(){
+    const R = pick([50,100,200]), div = R/10;
+    const Td = pick([5,5.5,6,6.5,7,7.5,8]), dd = pick([1.5,2,2.5,3,3.5,4].filter(x => x < Td-1));
+    const T = Td*div, d = dd*div;
+    const echoes = [{x:d, a:rnd(.5,.8)}, {x:T, a:rnd(.75,.95)}]; if (2*T < R) echoes.push({x:2*T, a:.45});
+    return { t:this.t, l:this.l, k:"screen",
+      q:`Straight-beam test on steel. The screen is calibrated 0–${R} mm in depth (each of the 10 divisions = ${fmt(div,0)} mm). How deep is the indication marked ▼?`,
+      o: options(d, [[T, "That's the back-wall echo, the big echo at the plate thickness."], [dd, `You counted divisions, not millimetres. Each division is ${fmt(div,0)} mm here.`], [d/2, "The screen is already calibrated in depth. Don't halve it for the round trip again."]], "mm"),
+      s:`The marked echo peaks at ${dd} divisions × ${fmt(div,0)} mm = ${fmt(d)} mm.\nThe screen is calibrated in depth, so that's the depth directly. The later echo at ${fmt(T)} mm is the back wall.`,
+      h:"Count divisions to the marked echo, then multiply by mm per division.",
+      scr:{R, echoes, mark:d, unit:"mm depth"} }; } },
+  { t:"Thickness & time of flight", l:"I", make(){
+    const R = pick([100,200]), div = R/10, Td = pick([2,2.5,3]);
+    const T = Td*div, echoes = []; for (let k=1; k*T < R*0.98; k++) echoes.push({x:k*T, a:.95*Math.pow(.72,k-1)});
+    return { t:this.t, l:this.l, k:"screen",
+      q:`No flaws here, just repeated back-wall echoes. The screen is calibrated 0–${R} mm in steel. How thick is the plate?`,
+      o: options(T, [[2*T, "That's where the 2nd back-wall echo sits. The thickness is the spacing between echoes, or the first echo."], [T/2, "The screen is already in depth. Don't halve it again."], [R/echoes.length, "Dividing the full range by the number of echoes only works if the last echo sits exactly at full screen."]], "mm"),
+      s:`The first back-wall echo is at ${Td} divisions × ${fmt(div,0)} mm = ${fmt(T)} mm.\nEach repeat is one more round trip, so the echoes are evenly spaced by the thickness: ${echoes.map(e=>fmt(e.x)).join(", ")} mm.`,
+      h:"Look at the first back-wall echo, or the spacing between neighbouring echoes.",
+      scr:{R, echoes, unit:"mm depth"} }; } },
+  { t:"Techniques & displays", l:"I", make(){
+    const R = pick([100,200]), div = R/10, Td = pick([3,3.5,4]), T = Td*div, d = pick([1.5,2,2.5].filter(x=>x<Td-0.5))*div;
+    const echoes = [{x:d, a:rnd(.45,.7), label:"A"}, {x:T, a:.9, label:"B"}, {x:2*T, a:.5, label:"C"}];
+    const askFlaw = Math.random() < .5;
+    const o = askFlaw
+      ? [["Echo A",1,""],["Echo B",0,"Echo B is at the plate thickness: that's the back wall."],["Echo C",0,"Echo C is at twice the thickness: the 2nd back-wall echo."],["None of them",0,"Echo A appears before the back wall, so it comes from inside the part."]]
+      : [["Echo A",0,"Echo A comes before the plate thickness, so it is a reflector inside the part."],["Echo B",1,""],["Echo C",0,"Echo C is at twice the thickness: the 2nd back-wall echo."],["None of them",0,"There is an echo exactly at the plate thickness: that's the back wall."]];
+    return { t:this.t, l:this.l, k:"screen",
+      q:`The plate is ${fmt(T,0)} mm thick and the screen shows 0–${R} mm. Which echo is ${askFlaw ? "the flaw" : "the first back-wall echo"}?`,
+      o, s:`Echo A at ${fmt(d)} mm is inside the part: a flaw.\nEcho B at ${fmt(T)} mm matches the thickness: the back wall.\nEcho C at ${fmt(2*T)} mm is the 2nd back-wall echo (a second round trip).`,
+      h:"Compare each echo's position with the plate thickness.",
+      scr:{R, echoes, unit:"mm depth"} }; } },
+  { t:"Angle-beam geometry", l:"II", make(){
+    const th = pick([45,60,70]), T = pick([20,25,30,40]), R = 200, div = R/10, c = Math.cos(th*Math.PI/180), s = Math.sin(th*Math.PI/180);
+    const second = Math.random() < .4, lo = second ? T/c*1.1 : T/c*0.25, hi = second ? T/c*1.8 : T/c*0.9;
+    let Sd = Math.round(rnd(lo, hi)/div*2)/2; Sd = clamp(Sd, 0.5, 9.5); const S = Sd*div;
+    const u = S*c, leg2 = u > T, depth = leg2 ? 2*T - u : u;
+    if (depth <= 0.5) return SCREEN[3].make();
+    const wr = [[S, "That's the sound path read straight off the screen. Depth needs the cosine: S·cos θ."], [S*s, "That's the surface distance (S·sin θ), not the depth."]];
+    wr.push(leg2 ? [u, `S·cos θ = ${fmt(u)} mm is deeper than the ${T} mm plate. The beam has bounced, so depth = 2T − S·cos θ.`] : [T-u, "That's the distance up from the back wall, not the depth from the scanning surface."]);
+    return { t:this.t, l:this.l, k:"screen",
+      q:`A ${th}° shear-wave probe on a ${T} mm steel plate. The screen shows sound path 0–${R} mm. How deep is the reflector marked ▼?`,
+      o: options(depth, wr, "mm"),
+      s:`Sound path S = ${Sd} div × ${div} mm = ${fmt(S)} mm.\nS·cos ${th}° = ${fmt(u)} mm${leg2 ? ` > T, so it's on the 2nd leg: depth = 2×${T} − ${fmt(u)} = ${fmt(depth)} mm.` : ` < T, so first leg: depth = ${fmt(depth)} mm.`}\nSurface distance = S·sin θ = ${fmt(S*s)} mm.`,
+      h:"Read the sound path, then depth = S·cos θ. If that's more than T, fold it back: 2T − S·cos θ.",
+      scr:{R, echoes:[{x:S, a:rnd(.5,.8)}], mark:S, unit:"mm sound path", angle:true} }; } },
+  { t:"Decibels & attenuation", l:"I", make(){
+    const h = pick([10,20,40]), need = 20*Math.log10(80/h);
+    return { t:this.t, l:this.l, k:"screen",
+      q:`The marked echo is at ${h}% of full screen height. How much gain must you add to bring it to 80% FSH?`,
+      o: options(need, [[10*Math.log10(80/h), "10·log is for power. Screen height is amplitude, so use 20·log."], [80-h, "dB is a ratio, not the difference in % FSH."], [need*2, "Doubling the height is +6 dB, not +12 dB."]], "dB"),
+      s:`dB = 20·log₁₀(80 / ${h}) = ${fmt(need)} dB.\nRule of thumb: every doubling of height is +6 dB (${h}% → ${h*2}% → … → 80%).`,
+      h:"Amplitude ratio → 20·log. Each doubling is 6 dB.",
+      scr:{R:100, echoes:[{x:pick([35,45,55,65]), a:h/100}], markHeight:h, unit:"mm depth"} }; } },
+];
+function scopeSVG(scr){
+  const W=340, H=200, L=10, Rr=330, Tp=10, B=176, w=Rr-L, h=B-Tp, N=300;
+  const trace = []; const echoes = [{x:0, a:1, w:0.016*scr.R, ip:true}, ...scr.echoes];
+  for (let i=0;i<=N;i++){
+    const x = i/N*scr.R; let y = 0;
+    for (const e of echoes) { const sig = e.w || 0.008*scr.R; const g = Math.exp(-Math.pow((x-e.x)/sig, 2)); y = Math.max(y, e.a * g * (0.65 + 0.35*Math.abs(Math.cos((x-e.x)/sig*5)))); }
+    y = Math.max(y, Math.abs(Math.sin(i*12.9898)*43758.5453 % 1) * 0.035);
+    trace.push(`${(L + i/N*w).toFixed(1)},${(B - clamp(y,0,1.02)*h).toFixed(1)}`);
+  }
+  let g = "";
+  for (let i=0;i<=10;i++) g += `<line x1="${L+i*w/10}" y1="${Tp}" x2="${L+i*w/10}" y2="${B}" stroke="#2c5a3c" stroke-width="${i%5?0.6:1}"/>`;
+  for (let j=0;j<=5;j++) g += `<line x1="${L}" y1="${Tp+j*h/5}" x2="${Rr}" y2="${Tp+j*h/5}" stroke="#2c5a3c" stroke-width="${j%5?0.6:1}"/>`;
+  let marks = "";
+  if (scr.mark != null) { const x = L + scr.mark/scr.R*w; const e = scr.echoes.find(e => Math.abs(e.x - scr.mark) < 1e-6); const y = B - (e ? e.a : .6)*h - 8; marks += `<path d="M${x-6},${y-10} L${x+6},${y-10} L${x},${y} z" fill="#ffb84d"/>`; }
+  if (scr.markHeight != null) { const y = B - scr.markHeight/100*h; marks += `<line x1="${L}" x2="${Rr}" y1="${y}" y2="${y}" stroke="#ffb84d" stroke-dasharray="4 4"/><text x="${Rr-4}" y="${y-4}" fill="#ffb84d" font-size="11" text-anchor="end">${scr.markHeight}% FSH</text><line x1="${L}" x2="${Rr}" y1="${B-0.8*h}" y2="${B-0.8*h}" stroke="#7fd6ff" stroke-dasharray="2 4"/><text x="${Rr-4}" y="${B-0.8*h-4}" fill="#7fd6ff" font-size="11" text-anchor="end">80% FSH</text>`; }
+  for (const e of scr.echoes) if (e.label) { const x = L + e.x/scr.R*w; marks += `<text x="${x}" y="${B - e.a*h - 8}" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle">${e.label}</text>`; }
+  const ax = `<text x="${L}" y="${H-6}" fill="#9fc9ad" font-size="11">0</text><text x="${L+w/2}" y="${H-6}" fill="#9fc9ad" font-size="11" text-anchor="middle">${scr.R/2}</text><text x="${Rr}" y="${H-6}" fill="#9fc9ad" font-size="11" text-anchor="end">${scr.R} ${scr.unit}</text>`;
+  return svgEl(`<svg class="scope" viewBox="0 0 ${W} ${H}" role="img" aria-label="A-scan screen, 0 to ${scr.R} ${scr.unit}" font-family="IBM Plex Mono, ui-monospace, monospace">${g}<polyline points="${trace.join(" ")}" fill="none" stroke="#5cff8a" stroke-width="1.6" stroke-linejoin="round"/>${marks}${ax}</svg>`);
 }
 
+/* ---------- procedures ---------- */
+const EXAMPLE_PROC = { id:"example", example:true, title:"EX-UT-101: Straight-beam UT of steel plate (example)",
+  summary:"A made-up sample procedure that shows how the coach turns a company document into questions.",
+  questions:[
+    {q:"Per EX-UT-101, how often must the calibration be checked during scanning?", options:["At the start only","Every 4 hours and at any change of operator or equipment","Once per shift","Only when an indication is found"], answer:1, why:"Section 6.3 requires a check at least every 4 hours and whenever the operator, probe, cable or instrument changes. If a check fails, everything since the last good check is rescanned.", mistakes:["Starting checks alone miss drift during long shifts.","","A shift can be 12 hours. The procedure caps the interval at 4 hours.","Calibration is checked on a schedule, not only when something is found."]},
+    {q:"What is the reference sensitivity in EX-UT-101?", options:["First back-wall echo set to 80% FSH on sound plate","Noise at 20% FSH","Back wall at 100% FSH","A 3 mm FBH at 50% FSH"], answer:0, why:"Section 7.1: on sound, flaw-free plate, set the first back-wall echo to 80% FSH. That is the reference level.", mistakes:["","Noise is never used as a reference level.","100% FSH leaves no headroom; the procedure uses 80%.","FBH references belong to other procedures. EX-UT-101 uses the back wall."]},
+    {q:"Scanning sensitivity in EX-UT-101 is:", options:["Reference level","Reference + 6 dB","Reference − 6 dB","Reference + 14 dB"], answer:1, why:"Section 7.2: scan at reference + 6 dB so small indications are not missed. Evaluation is done back at reference level.", mistakes:["Scanning at reference only can miss small indications.","","Lowering gain makes scanning less sensitive, not more.","+14 dB is not in this procedure; it would bury the screen in noise."]},
+    {q:"What is the maximum probe scanning speed in EX-UT-101?", options:["50 mm/s","150 mm/s","300 mm/s","No limit"], answer:1, why:"Section 8.2 limits manual scanning to 150 mm/s so the operator can see short indications.", mistakes:["50 mm/s is allowed, but it is not the limit.","","Too fast: short indications can flash past unseen.","Every procedure limits speed for manual scanning."]},
+    {q:"Minimum overlap between scan passes in EX-UT-101?", options:["No overlap needed","10% of the transducer diameter","50% of the transducer diameter","One full transducer width"], answer:1, why:"Section 8.1: each pass overlaps the previous one by at least 10% of the transducer diameter, so there are no gaps in coverage.", mistakes:["Without overlap there are gaps between passes.","","More overlap is allowed, but the minimum is 10%.","That would mean scanning everything twice."]},
+    {q:"Which indications must be recorded under EX-UT-101?", options:["Any echo above noise","Echoes ≥ 50% FSH at reference level, or back-wall loss ≥ 50%","Only echoes above 100% FSH","Only indications longer than 50 mm"], answer:1, why:"Section 9.1: record any indication at or above 50% FSH at reference level, and any area where the back wall drops by 50% (6 dB) or more.", mistakes:["Recording every blip above noise floods the report with false calls.","","Waiting for 100% FSH misses real flaws.","Length is used for acceptance, not for deciding what to record."]},
+    {q:"A lamination is 30 mm long in a 20 mm plate. Per EX-UT-101 it is:", options:["Acceptable","Rejectable: laminations longer than 25 mm are rejected","Acceptable if under 50% FSH","Recorded only, no decision"], answer:1, why:"Section 10.2: any lamination longer than 25 mm (measured with the 6 dB drop method) is rejectable. 30 mm is over the limit.", mistakes:["30 mm is over the 25 mm limit.","","Acceptance here depends on length, not echo height.","Recorded indications still need an accept/reject decision."]},
+    {q:"How is lamination length measured in EX-UT-101?", options:["By echo height","6 dB drop method at each end","Counting screen divisions","Time-of-flight diffraction"], answer:1, why:"Section 10.1: move the probe until the echo falls by half (−6 dB) at each end, and mark the probe centre. The distance between the marks is the length.", mistakes:["Echo height doesn't give length for flaws bigger than the beam.","","Screen divisions give depth, not length along the surface.","TOFD is not part of this procedure."]},
+  ]};
+const procList = () => { const list = (TEAM ? TEAMDATA.procs : []).concat(S.procs || []); return list.length ? list : [EXAMPLE_PROC]; };
+function procQuestion(proc){
+  const seen = S.seen[proc.id] || []; let idxs = proc.questions.map((_,i)=>i).filter(i => !seen.includes(i));
+  if (!idxs.length) { S.seen[proc.id] = []; idxs = proc.questions.map((_,i)=>i); }
+  const i = pick(idxs); S.seen[proc.id] = [...(S.seen[proc.id]||[]), i];
+  const pq = proc.questions[i];
+  return { t:"Procedure: " + proc.title, l:"–", k:"proc", procId:proc.id, q:pq.q,
+    o: pq.options.map((txt,j) => [txt, j === pq.answer ? 1 : 0, (pq.mistakes && pq.mistakes[j]) || ""]),
+    s: pq.why, h:"Think about which section of the procedure covers this." };
+}
+
+/* =============== badges & toasts =============== */
+const BADGES = [
+  ["first","1","First echo","Answer a question correctly", () => TOPICS.some(t => S.c[t] > 0)],
+  ["streak3","3","3-day streak","Finish the daily challenge 3 days in a row", () => S.streak >= 3],
+  ["streak7","7","7-day streak","Keep a 7-day streak", () => S.streak >= 7],
+  ["screen","A","Screen reader","Read 10 A-scan screens correctly", () => S.screenOk >= 10],
+  ["master","M","Topic master","Reach 80% confidence in any topic", () => TOPICS.some(t => eff(t) >= .8)],
+  ["round","R","All-rounder","60%+ in every topic for your level", () => topicsFor(S.level).every(t => eff(t) >= .6)],
+  ["exam","E","Exam ready","Score 70%+ on a mock exam", () => S.examBest >= 70],
+  ["proc","P","Knows the procedure","80% confidence on a procedure", () => Object.values(S.pm).some(p => effOf(p.m,p.t) >= .8)],
+];
+const earnedBadges = () => BADGES.filter(b => b[4]()).map(b => b[0]);
+function announceBadges(){ const seen = S.badgesSeen || (S.badgesSeen = []); const now = earnedBadges().filter(b => !seen.includes(b)); if (!now.length) return; S.badgesSeen = seen.concat(now); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} setTimeout(() => toast("New badge: " + BADGES.find(b=>b[0]===now[0])[2]), 900); }
+let toastTimer = null;
+function toast(text){ document.querySelectorAll(".toast").forEach(t => t.remove()); const t = el("div",{class:"toast",role:"status"}, text); document.body.append(t); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 1500); }
+
+/* =============== Claude, team store =============== */
 /* ---------------- sketch renderer (built-in diagrams and Claude's drawings) ---------------- */
 const COL = {blue:"var(--signal)",red:"var(--bad)",green:"var(--good)",amber:"var(--accent)",white:"var(--ink)",black:"var(--ink)",ink:"var(--ink)",
   gray:"var(--muted)",grey:"var(--muted)",steel:"var(--steel)",water:"var(--water)",wedge:"var(--wedge)",air:"var(--air)"};
@@ -250,7 +460,6 @@ function sketchSVG(sk){
 
 /* ---------------- Claude ---------------- */
 let sample = null;
-const claudeReady = (async () => { try { sample = await window.claude?.use?.("sample") ?? null; } catch(e) { sample = null; } render(); return sample; })();
 const RULES = `You are a friendly ultrasonic testing (UT) instructor helping a student prepare for ASNT Level I/II/III exams.
 Explain in plain, simple English first (short sentences, an everyday comparison), then give the formula or rule with the numbers worked through. Use mm, µs and MHz. Keep the explanation under 170 words. Use \\n for new lines; no markdown.
 
@@ -286,16 +495,58 @@ async function askClaude(prompt, box, ctl){
   }
 }
 
-/* ---------------- views ---------------- */
-let tab = "practice";
-try { const h = location.hash.slice(1); if (["practice","exam","progress","formulas","ask"].includes(h)) tab = h; } catch(e) {}
+
+let TEAM = null;                               // {db, user, uid, manager} when opened as the team version
+const TEAMDATA = {members:[], procs:[], names:{}};
+let syncChain = Promise.resolve(), syncTimer = null;
+function syncTeam(){
+  if (!TEAM) return; clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => { const body = memberBody();
+    syncChain = syncChain.then(() => TEAM.db.doc("members/" + TEAM.uid).set(body)).catch(() => {}); }, 1500);
+}
+function memberBody(){
+  const top = Object.entries(S.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+  return {level:S.level, m:S.m, t:S.t, a:S.a, c:S.c, xp:S.xp, wk:S.wk, wkXp:S.wkXp, streak:S.streak, lastDay:S.lastDay,
+          lastActive:S.lastActive, cert:S.cert, screenOk:S.screenOk, examBest:S.examBest, pm:S.pm, top};
+}
+(async function initClaude(){
+  const c = window.claude; if (!c || !c.use) return;
+  const [s, d, u] = await Promise.all(["sample","db","user"].map(n => c.use(n).catch(() => null)));
+  sample = s;
+  if (d && u) {
+    const uid = await u.id();
+    if (uid) {
+      TEAM = {db:d, user:u, uid, manager: await u.canEdit()};
+      try { const snap = await d.doc("members/" + uid).get();
+        if (snap.exists) { const x = snap.data(); if ((x.lastActive||0) > (S.lastActive||0)) { for (const k of ["level","m","t","a","c","xp","wk","wkXp","streak","lastDay","lastActive","cert","screenOk","examBest","pm"]) if (x[k] != null) S[k] = JSON.parse(JSON.stringify(x[k])); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} } } } catch(e) {}
+      d.collection("members").onSnapshot(q => { TEAMDATA.members = q.docs.map(x => Object.assign({id:x.id}, x.data())); if (tab === "team") render(); }, () => {});
+      d.collection("procedures").onSnapshot(q => { TEAMDATA.procs = q.docs.map(x => Object.assign({id:x.id}, x.data())).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); if (tab === "team") render(); }, () => {});
+    }
+  }
+  render();
+})();
+
+/* =============== header gauge =============== */
+function drawGauge(){
+  const r = readiness(), hh = 4 + r*28, base = 34;
+  const pts = []; for (let x=0;x<=84;x+=1){ let y = base - (Math.abs(Math.sin(x*7.1))*1.4);
+    if (x>=6 && x<=10) y = base - 30*Math.exp(-((x-8)**2)/2);
+    if (x>=50 && x<=62) y = base - hh*Math.exp(-((x-56)**2)/3)*Math.abs(Math.cos((x-56)*1.6));
+    pts.push(x+","+y.toFixed(1)); }
+  $("#ascan").innerHTML = `<line x1="44" x2="70" y1="${base-13}" y2="${base-13}" stroke="var(--accent)" stroke-width="1.2"/><polyline points="${pts.join(" ")}" fill="none" stroke="var(--signal)" stroke-width="1.3"/>`;
+  $("#ready").textContent = Math.round(r*100) + "%";
+}
+
+/* =============== tabs =============== */
+let tab = "today", sub = "practice";
+try { const h = location.hash.slice(1); if (["today","practice","lab","team","ask"].includes(h)) tab = h; } catch(e) {}
 const ICONS = {
+  today:'<path d="M12 3 C9 8 6 10 6 14 a6 6 0 0 0 12 0 c0-3-2-5-3-7 c-1 2-2 3-3 3 c0-3 1-5 0-7z"/>',
   practice:'<path d="M4 18 L9 6 L12 14 L15 9 L20 18"/>',
-  exam:'<circle cx="12" cy="13" r="7"/><path d="M12 13 V9 M10 3 h4"/>',
-  progress:'<path d="M5 20 V12 M10 20 V7 M15 20 V10 M20 20 V4"/>',
-  formulas:'<path d="M6 4 h12 v16 H6 z M9 9 h6 M9 13 h6 M9 17 h3"/>',
+  lab:'<path d="M9 3 h6 M10 3 v6 L5 19 a1 1 0 0 0 1 1.5 h12 a1 1 0 0 0 1-1.5 L14 9 V3"/>',
+  team:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20 c0-3.5 2.7-6 6-6 s6 2.5 6 6 M15 14.5 c3 0 6 2 6 5.5"/>',
   ask:'<path d="M5 5 h14 v10 H10 l-4 4 v-4 H5 z"/>'};
-const LABELS = {practice:"Practice",exam:"Mock exam",progress:"Progress",formulas:"Formulas",ask:"Ask Claude"};
+const LABELS = {today:"Today", practice:"Practice", lab:"Lab", team:"Team", ask:"Ask Claude"};
 function renderTabs(){
   $("#tabs").replaceChildren(...Object.keys(LABELS).map(k => {
     const b = el("button",{"aria-current": k===tab ? "page" : null, onclick:()=>{ tab=k; render(); window.scrollTo(0,0); }});
@@ -304,22 +555,97 @@ function renderTabs(){
 function levelPicker(){
   return el("div",{class:"level",role:"group","aria-label":"Exam level"}, ...LEVELS.map(l => el("button",{"aria-pressed": String(S.level===l), onclick:()=>{ S.level=l; save(); cur=null; render(); }}, "Level " + l)));
 }
+function bar(label, v, right){
+  const c = v >= .7 ? "var(--good)" : v >= .4 ? "var(--accent)" : "var(--bad)";
+  return el("div",{class:"bar"}, el("span",{}, label), el("span",{class:"n"}, right), el("div",{class:"track"}, el("div",{class:"fill",style:`width:${Math.round(v*100)}%;background:${c}`})));
+}
+const confColor = v => v >= .7 ? "var(--good)" : v >= .4 ? "var(--accent)" : "var(--bad)";
 
-/* practice */
-let cur = null; // {q, chosen, claudeBox}
-function newPractice(){ cur = {q: makeQuestion(nextTopic()), chosen: null, hint: false}; }
+/* =============== TODAY =============== */
+function startDaily(){
+  const ts = topicsFor(S.level).slice().sort((a,b) => (isDue(S.m[b],S.t[b],S.a[b]) - isDue(S.m[a],S.t[a],S.a[a])) || (eff(a) - eff(b)));
+  const weak = ts.slice(0,3), rest = shuffle(ts.slice(3));
+  const qs = weak.map(makeQuestion);
+  qs.push(makeQuestion(rest[0] || weak[0]));
+  const gens = SCREEN.filter(g => rank(g.l) <= rank(S.level)); qs.push(pick(gens).make());
+  const procs = procList(); if (procs.length && Math.random() < .5) qs[3] = procQuestion(pick(procs));
+  if (S.daily.day !== todayStr()) S.daily = {day: todayStr(), n:0, ok:[]};
+  daily = qs.slice(S.daily.n);
+  cur = {q: daily.shift(), chosen:null, hint:false, mode:"daily"};
+  tab = "practice"; sub = "practice"; render(); window.scrollTo(0,0);
+}
+let daily = [];
+function finishDaily(){
+  const t = todayStr(), y = todayStr(new Date(Date.now() - DAY));
+  if (S.lastDay !== t) { S.streak = S.lastDay === y ? S.streak + 1 : 1; S.lastDay = t; }
+  const before = earnedBadges(); addXP(20); save(); toast("Daily challenge done: +20 XP"); announceBadges();
+  cur = null; tab = "today"; render(); window.scrollTo(0,0);
+}
+function flameSVG(){ return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="var(--accent)"><path d="M12 2 C9 7 5 9.5 5 14.5 a7 7 0 0 0 14 0 c0-3.2-2-5.6-3.4-7.6 c-.8 2-2.2 3.3-3.6 3.6 C12.6 7.6 13.2 4.6 12 2z"/></svg>`; }
+function todayView(){
+  const t = todayStr(), doneToday = S.daily.day === t && S.daily.n >= 5, started = S.daily.day === t && S.daily.n > 0 && !doneToday;
+  const streakAlive = S.lastDay === t || S.lastDay === todayStr(new Date(Date.now()-DAY));
+  const tile = (big, label, icon) => { const d = el("div",{class:"tile"}); const b = el("b"); if (icon) b.innerHTML = icon + " "; b.append(big); d.append(b, el("span",{}, label)); return d; };
+  const ts = topicsFor(S.level), due = ts.filter(x => isDue(S.m[x], S.t[x], S.a[x]));
+  const nodes = [];
+  nodes.push(el("div",{class:"hero"}, tile(String(streakAlive ? S.streak : 0), "day streak", flameSVG()), tile(String(S.wk === weekId() ? S.wkXp : 0), "XP this week"), tile(pct(readiness()), `ready for Level ${S.level}`)));
+  const pips = el("div",{class:"pips"}, ...[0,1,2,3,4].map(i => el("i",{class: S.daily.day===t && i < S.daily.n ? (S.daily.ok[i] ? "ok" : "no") : ""})));
+  nodes.push(el("div",{class:"daily"},
+    el("h2",{}, doneToday ? "Daily challenge done" : "Daily challenge"),
+    el("p",{}, doneToday ? `${S.daily.ok.filter(Boolean).length} of 5 correct. Come back tomorrow to keep your streak going.` : "5 questions picked from your weakest and fading topics, plus one screen to read. About 3 minutes."),
+    pips,
+    doneToday ? null : el("button",{class:"btn primary", onclick:startDaily}, started ? `Continue (${S.daily.n}/5)` : "Start today's 5")));
+  if (due.length) nodes.push(el("h3",{class:"sec"}, "Fading: due for a refresh"), el("div",{class:"chips"}, ...due.map(x => el("button",{class:"chip due", onclick:()=>{ cur = {q: makeQuestion(x), chosen:null, hint:false}; tab="practice"; sub="practice"; render(); }}, x))));
+  nodes.push(el("div",{class:"row",style:"justify-content:space-between"}, el("h3",{class:"sec"}, "Your confidence"), levelPicker()));
+  nodes.push(el("div",{class:"panel conf"}, ...ts.map(x => {
+    const now = eff(x), peak = S.m[x], d = daysSince(S.t[x]);
+    return el("div",{class:"crow"}, el("span",{}, x), el("span",{class:"n"}, pct(now)),
+      el("div",{class:"track"}, el("div",{class:"lost",style:`left:0;width:${Math.round(peak*100)}%`}), el("div",{class:"now",style:`width:${Math.round(now*100)}%;background:${confColor(now)}`})),
+      el("span",{class:"meta"}, d == null ? "Not practiced yet" : (d === 0 ? "Practiced today" : `Last practiced ${d} day${d===1?"":"s"} ago`) + (peak - now > 0.01 ? ` · ${Math.round((peak-now)*100)} pts faded` : "")));
+  }), el("p",{class:"note",style:"margin:0"}, "Confidence grows when you answer well and fades the longer you don't practice a topic (striped part = faded).")));
+  const earned = earnedBadges();
+  nodes.push(el("h3",{class:"sec"}, "Badges"), el("div",{class:"badges"}, ...BADGES.map(b => el("span",{class:"badge" + (earned.includes(b[0]) ? "" : " off"), title:b[3]}, el("i",{}, b[1]), b[2]))));
+  const certIn = el("input",{type:"date", id:"cert-date", "aria-label":"Certification expiry date", onchange:e => { S.cert = e.target.value; save(); render(); }}); certIn.value = S.cert || "";
+  let certNote = "Add your certification expiry date and the coach will remind you to review before it's due.";
+  if (S.cert) { const left = dayNum(S.cert) - dayNum(t); certNote = left < 0 ? `Your certification expired ${-left} days ago.` : left <= 90 ? `${left} days to go. You're in the recertification window, so keep every topic above 60%.` : `${left} days until recertification.`; }
+  nodes.push(el("h3",{class:"sec"}, "Certification"), el("div",{class:"panel"}, el("label",{class:"row", for:"cert-date"}, el("span",{}, `Level ${S.level} expires on`), certIn), el("p",{class:"note",style:"margin:0"}, certNote)));
+  const mis = Object.entries(S.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  if (mis.length) nodes.push(el("h3",{class:"sec"}, "Your most common slips"), el("div",{class:"panel"}, ...mis.map(([k,n]) => el("div",{class:"review"}, el("span",{}, k), el("span",{class:"note"}, `${n}×`)))));
+  nodes.push(confirmReset ? el("div",{class:"confirm"}, el("span",{}, "Erase all progress on this device?"),
+      el("div",{class:"row"}, el("button",{class:"btn",onclick:()=>{confirmReset=false;render();}},"Keep it"),
+        el("button",{class:"btn",style:"border-color:var(--bad);color:var(--bad)",onclick:()=>{ const l=S.level, p=S.procs; S=fresh(); S.level=l; S.procs=p; save(); confirmReset=false; cur=null; render(); }},"Erase progress")))
+    : el("button",{class:"btn",style:"justify-self:start",onclick:()=>{confirmReset=true;render();}}, "Reset my progress"));
+  nodes.push(el("p",{class:"note"}, TEAM ? "Your progress is saved to your team and shared with your manager." : "Progress is saved in this browser on this device."));
+  return nodes;
+}
+let confirmReset = false;
+
+/* =============== PRACTICE =============== */
+let cur = null;
+function newPractice(){
+  if (cur && cur.mode === "proc") { const p = procList().find(x => x.id === cur.procId); if (p) { cur = {q: procQuestion(p), chosen:null, hint:false, mode:"proc", procId:p.id}; return; } }
+  cur = {q: makeQuestion(nextTopic()), chosen:null, hint:false};
+}
 function contextFor(q, chosen){
-  const lines = [`Topic: ${q.t} (Level ${q.l})`, `Question: ${q.q}`, "Options:"];
+  const lines = [`Topic: ${q.t}${q.l && q.l !== "–" ? ` (Level ${q.l})` : ""}`, `Question: ${q.q}`, "Options:"];
   q.o.forEach((o,i) => lines.push(`  ${"ABCD"[i]}. ${o[0]}${o[1] ? "   <- correct" : ""}`));
+  if (q.scr) lines.push(`Screen: A-scan, 0–${q.scr.R} ${q.scr.unit}, echoes at ${q.scr.echoes.map(e => `${fmt(e.x)} mm (${Math.round(e.a*100)}% FSH${e.label ? ", labelled " + e.label : ""})`).join("; ")}.`);
   if (chosen != null) lines.push(`The student chose ${"ABCD"[chosen]} (${q.o[chosen][0]}), which is ${q.o[chosen][1] ? "correct" : "wrong"}.`);
   lines.push("Reference solution: " + q.s);
   return lines.join("\n");
 }
 function practiceView(){
+  const head = el("div",{class:"seg",role:"group","aria-label":"Practice mode"}, ...[["practice","Practice"],["exam","Mock exam"],["formulas","Formulas"]].map(([k,l]) => el("button",{"aria-pressed": String(sub===k), onclick:()=>{ sub=k; render(); }}, l)));
+  if (sub === "exam") return [head, ...examView()];
+  if (sub === "formulas") return [head, ...formulasView()];
   if (!cur) newPractice();
   const {q} = cur, answered = cur.chosen != null;
-  const nodes = [el("div",{class:"row",style:"justify-content:space-between"}, el("div",{class:"eyebrow"}, q.t, el("span",{class:"lv"}, "· Level " + q.l)), levelPicker()),
-    el("p",{class:"qtext"}, q.q)];
+  const nodes = [head];
+  if (cur.mode === "daily") nodes.push(el("div",{class:"row",style:"justify-content:space-between"}, el("div",{class:"eyebrow"}, `Daily challenge · ${S.daily.n + (answered?0:1)} of 5`), el("div",{class:"pips"}, ...[0,1,2,3,4].map(i => el("i",{class: i < S.daily.n ? (S.daily.ok[i] ? "ok" : "no") : "", style:"background:" + (i < S.daily.n ? "" : "var(--sunk)")})))));
+  nodes.push(el("div",{class:"row",style:"justify-content:space-between"}, el("div",{class:"eyebrow"}, q.k === "proc" ? "Procedure" : q.t, q.k === "proc" ? null : el("span",{class:"lv"}, "· Level " + q.l), q.k === "screen" ? el("span",{class:"lv"}, "· read the screen") : null), cur.mode ? null : levelPicker()));
+  if (q.k === "proc") nodes.push(el("div",{class:"note"}, q.t.replace(/^Procedure: /,"")));
+  if (q.scr) nodes.push(scopeSVG(q.scr));
+  nodes.push(el("p",{class:"qtext"}, q.q));
   nodes.push(el("div",{class:"opts"}, ...q.o.map((o,i) => {
     let cls = "opt"; if (answered) { if (o[1]) cls += " ok"; else if (i === cur.chosen) cls += " no"; }
     return el("button",{class:cls, disabled: answered, onclick:()=>answer(i)}, el("span",{class:"k"}, "ABCD"[i]), el("span",{}, o[0]));
@@ -329,7 +655,7 @@ function practiceView(){
     const ch = q.o[cur.chosen], ok = !!ch[1];
     const p = el("div",{class:"panel"}, el("p",{class:"verdict " + (ok?"good":"bad")}, ok ? "Correct" : "Not quite"));
     if (!ok && ch[2]) p.append(el("p",{class:"pre"}, ch[2]));
-    p.append(el("p",{class:"pre mono"}, q.s));
+    p.append(el("p",{class:"pre " + (q.k === "proc" ? "" : "mono")}, q.s));
     const d = sketchSVG(q.d); if (d) p.append(d);
     cur.claudeBox = cur.claudeBox || el("div",{class:"claude-box"});
     if (cur.claudeBox.childNodes.length) p.append(cur.claudeBox);
@@ -338,14 +664,25 @@ function practiceView(){
   const row = el("div",{class:"row"});
   if (!answered) row.append(el("button",{class:"btn",onclick:()=>{cur.hint=true;render();}}, "Hint"));
   if (answered && (q.x || sample) && !(cur.claudeBox && cur.claudeBox.childNodes.length)) row.append(el("button",{class:"btn claude", onclick: explain}, "Explain with Claude"));
-  row.append(el("button",{class:"btn primary grow", onclick:()=>{ newPractice(); render(); window.scrollTo(0,0); }}, answered ? "Next question" : "Skip"));
+  const isDaily = cur.mode === "daily", last = isDaily && S.daily.n >= 5;
+  row.append(el("button",{class:"btn primary grow", onclick: nextQ}, last ? "Finish challenge" : answered ? "Next question" : (isDaily ? "Skip for now" : "Skip")));
   nodes.push(row);
+  if (cur.mode) nodes.push(el("button",{class:"btn",style:"justify-self:start",onclick:()=>{ cur=null; daily=[]; render(); }}, "Back to free practice"));
   return nodes;
+}
+function nextQ(){
+  if (cur.mode === "daily") {
+    if (S.daily.n >= 5) return finishDaily();
+    if (cur.chosen == null) daily.push(cur.q);                 // skipped: ask it again later
+    cur = {q: daily.shift() || makeQuestion(nextTopic()), chosen:null, hint:false, mode:"daily"};
+  } else newPractice();
+  render(); window.scrollTo(0,0);
 }
 function answer(i){
   if (cur.chosen != null) return;
   cur.chosen = i; const o = cur.q.o[i];
-  update(cur.q.t, !!o[1], cur.q.k === "calc" ? o[2] : "");
+  if (cur.mode === "daily") { if (S.daily.day !== todayStr()) S.daily = {day: todayStr(), n:0, ok:[]}; S.daily.n++; S.daily.ok.push(!!o[1]); }
+  record(cur.q, !!o[1], cur.q.k === "concept" ? "" : o[2]);
   render();
 }
 function showPre(box, x){
@@ -355,13 +692,14 @@ function showPre(box, x){
 }
 function explain(){
   const {q, chosen} = cur; const right = q.o.find(o=>o[1])[0];
-  if (q.x) { cur.claudeBox = el("div",{class:"claude-box"}); showPre(cur.claudeBox, q.x); render(); cur.claudeBox.scrollIntoView({behavior:"smooth", block:"start"}); return; }
-  const ask = q.o[chosen][1] ? `Explain simply why "${right}" is right, so I really understand it. Include a sketch.`
-    : `Explain simply why the right answer is "${right}", and why my answer "${q.o[chosen][0]}" is wrong. Include a sketch that makes it obvious.`;
   cur.claudeBox = el("div",{class:"claude-box"});
-  askClaude(contextFor(q, chosen) + "\n\nStudent asks: " + ask, cur.claudeBox, new AbortController());
-  render();
-  cur.claudeBox.scrollIntoView({behavior:"smooth", block:"start"});
+  if (q.x) showPre(cur.claudeBox, q.x);
+  else {
+    const ask = q.o[chosen][1] ? `Explain simply why "${right}" is right, so I really understand it. Include a sketch.`
+      : `Explain simply why the right answer is "${right}", and why my answer "${q.o[chosen][0]}" is wrong. Include a sketch that makes it obvious.`;
+    askClaude(contextFor(q, chosen) + "\n\nStudent asks: " + ask, cur.claudeBox, new AbortController());
+  }
+  render(); cur.claudeBox.scrollIntoView({behavior:"smooth", block:"start"});
 }
 
 /* mock exam */
@@ -369,82 +707,56 @@ const EXAM_N = 20, EXAM_MIN = 40;
 let exam = null, examTimer = null;
 function startExam(){
   const ts = shuffle(topicsFor(S.level)); const qs = [];
-  for (let i=0; qs.length<EXAM_N; i++) { const t = ts[i % ts.length]; const pool = BANK.filter(q=>q.t===t && rank(q.l)<=rank(S.level) && !qs.some(x=>x.q===q.q)); if (pool.length) qs.push(Object.assign({}, pick(pool), {})); if (i>400) break; }
-  exam = {qs: qs.map(q=>Object.assign({}, q)), ans: Array(qs.length).fill(null), i: 0, end: Date.now() + EXAM_MIN*60000, running: true};
+  for (let i=0; qs.length<EXAM_N && i<400; i++) { const q = makeQuestion(ts[i % ts.length]); if (!qs.some(x => x.q === q.q)) qs.push(q); }
+  exam = {qs, ans: Array(qs.length).fill(null), i: 0, end: Date.now() + EXAM_MIN*60000, running: true};
   clearInterval(examTimer); examTimer = setInterval(tickExam, 1000); render();
 }
-function tickExam(){
-  if (!exam?.running) return clearInterval(examTimer);
-  const t = $("#timer"); const left = Math.max(0, exam.end - Date.now());
-  if (t) t.textContent = `${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,"0")}`;
-  if (left <= 0) finishExam();
-}
+const mmss = ms => `${Math.floor(ms/60000)}:${String(Math.floor(ms/1000)%60).padStart(2,"0")}`;
+function tickExam(){ if (!exam?.running) return clearInterval(examTimer); const t = $("#timer"); const left = Math.max(0, exam.end - Date.now()); if (t) t.textContent = mmss(left); if (left <= 0) finishExam(); }
 function finishExam(){
   if (!exam?.running) return; exam.running = false; clearInterval(examTimer);
-  exam.qs.forEach((q,i) => { const a = exam.ans[i]; update(q.t, a!=null && !!q.o[a][1], a!=null && q.k==="calc" ? q.o[a][2] : ""); });
+  const before = earnedBadges();
+  exam.qs.forEach((q,i) => { const a = exam.ans[i]; const ok = a!=null && !!q.o[a][1];
+    if (q.k === "proc") return;
+    S.m[q.t] = bkt(eff(q.t), ok); S.t[q.t] = Date.now(); S.a[q.t]++; if (ok) S.c[q.t]++;
+    if (!ok && a!=null && q.k !== "concept" && q.o[a][2]) { const k = mistakeKey(q.o[a][2]); S.mistakes[k] = (S.mistakes[k]||0)+1; } });
+  const right = exam.qs.filter((q,i)=>exam.ans[i]!=null && q.o[exam.ans[i]][1]).length, score = Math.round(right/exam.qs.length*100);
+  S.examBest = Math.max(S.examBest || 0, score); S.lastActive = Date.now(); addXP(right*5 + 20); save(); toast(`Exam done: +${right*5+20} XP`); announceBadges();
   render(); window.scrollTo(0,0);
 }
 function examView(){
-  if (!exam) return [el("h2",{},"Mock exam"), el("div",{class:"panel"},
-      el("p",{}, `${EXAM_N} questions across every Level ${S.level} topic, ${EXAM_MIN} minutes, no hints. You get a score and a review of every mistake at the end.`),
+  if (!exam) return [el("div",{class:"panel"}, el("h2",{},"Mock exam"),
+      el("p",{style:"margin:0"}, `${EXAM_N} questions across every Level ${S.level} topic, including screens to read. ${EXAM_MIN} minutes, no hints. You get a score and a review of every mistake at the end.`),
       el("div",{class:"row"}, levelPicker(), el("button",{class:"btn primary grow", onclick:startExam}, "Start exam")))];
   if (exam.running) {
     const q = exam.qs[exam.i], a = exam.ans[exam.i];
-    const left = Math.max(0, exam.end - Date.now());
-    return [el("div",{class:"row",style:"justify-content:space-between"}, el("div",{class:"eyebrow"}, `Question ${exam.i+1} of ${exam.qs.length}`), el("span",{class:"timer",id:"timer"}, `${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,"0")}`)),
+    return [el("div",{class:"row",style:"justify-content:space-between"}, el("div",{class:"eyebrow"}, `Question ${exam.i+1} of ${exam.qs.length}`), el("span",{class:"timer",id:"timer"}, mmss(Math.max(0, exam.end - Date.now())))),
       el("div",{class:"progress"}, el("i",{style:`width:${(exam.ans.filter(x=>x!=null).length/exam.qs.length*100).toFixed(0)}%`})),
+      q.scr ? scopeSVG(q.scr) : null,
       el("p",{class:"qtext"}, q.q),
       el("div",{class:"opts"}, ...q.o.map((o,i) => el("button",{class:"opt" + (a===i?" sel":""), onclick:()=>{ exam.ans[exam.i]=i; if (exam.i < exam.qs.length-1) exam.i++; render(); window.scrollTo(0,0); }}, el("span",{class:"k"},"ABCD"[i]), el("span",{}, o[0])))),
       el("div",{class:"row"}, el("button",{class:"btn", disabled: exam.i===0, onclick:()=>{exam.i--;render();}}, "Back"),
         el("button",{class:"btn", disabled: exam.i===exam.qs.length-1, onclick:()=>{exam.i++;render();}}, "Next"),
         el("button",{class:"btn primary grow", onclick: finishExam}, "Finish and score"))];
   }
-  const n = exam.qs.length, right = exam.qs.filter((q,i)=>exam.ans[i]!=null && q.o[exam.ans[i]][1]).length, pct = Math.round(right/n*100);
+  const n = exam.qs.length, right = exam.qs.filter((q,i)=>exam.ans[i]!=null && q.o[exam.ans[i]][1]).length, sc = Math.round(right/n*100);
   const byT = {}; exam.qs.forEach((q,i)=>{ byT[q.t] = byT[q.t] || [0,0]; byT[q.t][1]++; if (exam.ans[i]!=null && q.o[exam.ans[i]][1]) byT[q.t][0]++; });
   const wrong = exam.qs.map((q,i)=>[q,exam.ans[i]]).filter(([q,a]) => a==null || !q.o[a][1]);
   return [el("h2",{},"Exam result"),
-    el("div",{class:"panel"}, el("div",{class:"stat"}, el("div",{}, el("b",{style:`color:var(${pct>=70?"--good":"--bad"})`}, pct+"%"), el("span",{},"score")), el("div",{}, el("b",{}, `${right}/${n}`), el("span",{},"correct"))),
-      el("p",{class:"note"}, pct>=70 ? "At or above the usual 70% pass mark." : "Below the usual 70% pass mark. The topics below show where to focus.")),
+    el("div",{class:"panel"}, el("div",{class:"stat"}, el("div",{}, el("b",{style:`color:var(${sc>=70?"--good":"--bad"})`}, sc+"%"), el("span",{},"score")), el("div",{}, el("b",{}, `${right}/${n}`), el("span",{},"correct"))),
+      el("p",{class:"note"}, sc>=70 ? "At or above the usual 70% pass mark." : "Below the usual 70% pass mark. The topics below show where to focus.")),
     el("h3",{class:"sec"},"By topic"),
     el("div",{class:"panel bars"}, ...Object.entries(byT).map(([t,[r,c]]) => bar(t, r/c, `${r}/${c}`))),
     wrong.length ? el("h3",{class:"sec"},"Review your mistakes") : null,
     wrong.length ? el("div",{class:"panel"}, ...wrong.map(([q,a]) => el("div",{class:"review"},
+      q.scr ? scopeSVG(q.scr) : null,
       el("strong",{}, q.q), el("span",{style:"color:var(--bad)"}, a==null ? "Not answered" : "Your answer: " + q.o[a][0]),
       el("span",{style:"color:var(--good)"}, "Correct: " + q.o.find(o=>o[1])[0]),
       a!=null && q.o[a][2] ? el("span",{class:"muted"}, q.o[a][2]) : null,
-      q.x ? (() => { const box = el("div",{class:"claude-box"}); const b = el("button",{class:"btn claude",style:"justify-self:start",onclick:()=>{ showPre(box, q.x); b.remove(); }}, "Explain with Claude"); return el("div",{style:"display:grid;gap:8px;margin-top:4px"}, b, box); })() : null))) : null,
+      q.x ? (() => { const box = el("div",{class:"claude-box"}); const b = el("button",{class:"btn claude",style:"justify-self:start",onclick:()=>{ showPre(box, q.x); b.remove(); }}, "Explain with Claude"); return el("div",{style:"display:grid;gap:8px;margin-top:4px"}, b, box); })()
+        : el("span",{class:"pre muted mono"}, q.s)))) : null,
     el("button",{class:"btn primary", onclick:()=>{ exam=null; render(); }}, "New exam")];
 }
-
-/* progress */
-let confirmReset = false;
-function bar(label, v, right){
-  const c = v >= .7 ? "var(--good)" : v >= .4 ? "var(--accent)" : "var(--bad)";
-  return el("div",{class:"bar"}, el("span",{}, label), el("span",{class:"n"}, right), el("div",{class:"track"}, el("div",{class:"fill",style:`width:${Math.round(v*100)}%;background:${c}`})));
-}
-function progressView(){
-  const ts = topicsFor(S.level), tot = TOPICS.reduce((s,t)=>s+S.attempts[t],0), ok = TOPICS.reduce((s,t)=>s+S.correct[t],0);
-  const weak = ts.slice().sort((a,b)=>S.mastery[a]-S.mastery[b]).slice(0,3);
-  const mis = Object.entries(S.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,4);
-  return [el("div",{class:"row",style:"justify-content:space-between"}, el("h2",{},"Your mastery"), levelPicker()),
-    el("div",{class:"panel"}, el("div",{class:"stat"},
-      el("div",{}, el("b",{}, Math.round(readiness()*100)+"%"), el("span",{}, `readiness for Level ${S.level}`)),
-      el("div",{}, el("b",{}, tot), el("span",{}, "answered")),
-      el("div",{}, el("b",{}, tot ? Math.round(ok/tot*100)+"%" : "–"), el("span",{}, "correct"))),
-      el("p",{class:"note"}, "Mastery is estimated with Bayesian Knowledge Tracing. Practice picks weak topics more often.")),
-    el("h3",{class:"sec"},"Work on next"),
-    el("div",{class:"panel"}, el("p",{class:"pre"}, weak.join("\n"))),
-    mis.length ? el("h3",{class:"sec"},"Your most common slips") : null,
-    mis.length ? el("div",{class:"panel"}, ...mis.map(([k,n]) => el("div",{class:"review"}, el("span",{}, k), el("span",{class:"note"}, `${n}×`)))) : null,
-    el("h3",{class:"sec"},"By topic"),
-    el("div",{class:"panel bars"}, ...ts.map(t => bar(t, S.mastery[t], Math.round(S.mastery[t]*100)+"%"))),
-    confirmReset ? el("div",{class:"confirm"}, el("span",{}, "Erase all progress on this device?"),
-        el("div",{class:"row"}, el("button",{class:"btn",onclick:()=>{confirmReset=false;render();}},"Keep it"),
-          el("button",{class:"btn",style:"border-color:var(--bad);color:var(--bad)",onclick:()=>{ const l=S.level; S=freshState(); S.level=l; save(); confirmReset=false; cur=null; render(); }},"Erase progress")))
-      : el("button",{class:"btn",onclick:()=>{confirmReset=true;render();}}, "Reset my progress"),
-    el("p",{class:"note"}, "Progress is saved in this browser on this device.")];
-}
-
 /* formulas */
 const FORMULAS = [["Wavelength","λ = v / f"],["Pulse-echo thickness","d = v · t / 2"],["Near field","N = D² / (4λ) = D² f / (4v)"],
  ["Beam spread (null / −6 dB)","sin γ = 1.22 λ/D   ·   0.51 λ/D"],["Snell's law","sin θ₁ / v₁ = sin θ₂ / v₂"],
@@ -458,8 +770,237 @@ function formulasView(){
   return [el("h2",{},"Formula sheet"), el("div",{class:"panel"}, ...FORMULAS.map(([a,b]) => el("div",{class:"formula"}, el("span",{},a), el("code",{},b))))];
 }
 
-/* ask */
-const FAQ = DATA.faq || [];
+
+
+/* =============== LAB =============== */
+let lab = "snell";
+const LABS = {snell:"Refraction", beam:"Beam & near field", angle:"Angle-beam path"};
+const MEDIA1 = {"Acrylic wedge":2.73, "Water":1.48}, MEDIA2 = {"Steel":[5.92,3.23], "Aluminum":[6.32,3.13], "Stainless steel":[5.74,3.10]};
+const LS = {snell:{m1:"Acrylic wedge", m2:"Steel", inc:30}, beam:{f:5, D:12.7, mat:"Steel"}, angle:{th:60, T:25, S:40}};
+function slider(id, label, min, max, step, val, unit, onInput){
+  const out = el("output",{for:id}, `${val} ${unit}`);
+  const inp = el("input",{type:"range", id, min, max, step, value:val, "aria-label":label, oninput:e => { out.textContent = `${e.target.value} ${unit}`; onInput(+e.target.value); }});
+  return el("div",{class:"ctl"}, el("label",{for:id}, label), inp, out);
+}
+function selectBox(id, opts, val, onChange){ const s = el("select",{id, onchange:e => onChange(e.target.value)}, ...opts.map(o => el("option",{value:o}, o))); s.value = val; return s; }
+function labView(){
+  const head = el("div",{class:"seg",role:"group","aria-label":"Simulations"}, ...Object.entries(LABS).map(([k,l]) => el("button",{"aria-pressed": String(lab===k), onclick:()=>{ lab=k; render(); }}, l)));
+  const stage = el("div",{class:"lab",style:"display:grid;gap:12px"});
+  const nodes = [el("h2",{}, "Physics lab"), el("p",{class:"muted",style:"margin:0"}, "Move the sliders and watch the sound respond."), head, stage];
+  if (lab === "snell") buildSnell(stage); else if (lab === "beam") buildBeam(stage); else buildAngle(stage);
+  return nodes;
+}
+function buildSnell(stage){
+  const st = LS.snell, fig = el("div"), info = el("div",{style:"display:grid;gap:8px"});
+  const draw = () => {
+    const v1 = MEDIA1[st.m1], [vL, vS] = MEDIA2[st.m2], a = st.inc*Math.PI/180, sL = vL/v1*Math.sin(a), sS = vS/v1*Math.sin(a);
+    const c1 = Math.asin(Math.min(1, v1/vL))*180/Math.PI, c2 = Math.asin(Math.min(1, v1/vS))*180/Math.PI;
+    const W=340, H=260, ox=170, oy=120, R=110;
+    let g = `<rect x="0" y="0" width="${W}" height="${oy}" fill="${st.m1==="Water"?"var(--water)":"var(--wedge)"}" fill-opacity=".45"/><rect x="0" y="${oy}" width="${W}" height="${H-oy}" fill="var(--steel)" fill-opacity=".55"/>`;
+    g += `<line x1="${ox}" y1="8" x2="${ox}" y2="${H-8}" stroke="var(--muted)" stroke-dasharray="5 4"/>`;
+    g += `<defs>${["ink","signal","bad"].map(k => `<marker id="ah-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--${k})"/></marker>`).join("")}</defs>`;
+    g += `<line x1="${ox - R*Math.sin(a)}" y1="${oy - R*Math.cos(a)}" x2="${ox}" y2="${oy}" stroke="var(--ink)" stroke-width="2.5" marker-end="url(#ah-ink)"/>`;
+    g += `<line x1="${ox}" y1="${oy}" x2="${ox + R*.6*Math.sin(a)}" y2="${oy - R*.6*Math.cos(a)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+    if (sL < 1) { const b = Math.asin(sL); g += `<line x1="${ox}" y1="${oy}" x2="${ox + R*Math.sin(b)}" y2="${oy + R*Math.cos(b)}" stroke="var(--signal)" stroke-width="2.5" marker-end="url(#ah-signal)"/><text x="${ox + R*Math.sin(b) + 4}" y="${oy + R*Math.cos(b) + 4}" fill="var(--signal)" font-size="12" font-weight="700">L ${fmt(b*180/Math.PI)}°</text>`; }
+    if (sS < 1) { const b = Math.asin(sS); g += `<line x1="${ox}" y1="${oy}" x2="${ox + R*Math.sin(b)}" y2="${oy + R*Math.cos(b)}" stroke="var(--bad)" stroke-width="2.5" marker-end="url(#ah-bad)"/><text x="${ox + R*Math.sin(b) - 4}" y="${oy + R*Math.cos(b) + 14}" fill="var(--bad)" font-size="12" font-weight="700" text-anchor="end">S ${fmt(b*180/Math.PI)}°</text>`; }
+    else { g += `<line x1="${ox}" y1="${oy+2}" x2="${W-10}" y2="${oy+2}" stroke="var(--bad)" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${W-12}" y="${oy+16}" fill="var(--bad)" font-size="12" font-weight="700" text-anchor="end">surface wave</text>`; }
+    g += `<text x="${ox - 8}" y="${oy - 46}" fill="var(--ink)" font-size="12" font-weight="700" text-anchor="end">${st.inc}°</text>`;
+    g += `<text x="8" y="18" fill="var(--ink)" font-size="12" font-weight="700">${st.m1} · ${v1} mm/µs</text><text x="8" y="${H-10}" fill="var(--ink)" font-size="12" font-weight="700">${st.m2} · L ${vL} / S ${vS}</text>`;
+    fig.replaceChildren(svgEl(`<svg class="sim" viewBox="0 0 ${W} ${H}" role="img" aria-label="Refraction at ${st.inc} degrees" font-family="Atkinson Hyperlegible, system-ui, sans-serif">${g}</svg>`));
+    let status, cls;
+    if (st.inc < c1) { status = "Both waves enter: longitudinal (blue) and shear (red). Two beams means confusing echoes."; cls = "warn"; }
+    else if (st.inc < c2) { status = `Past the 1st critical angle (${fmt(c1)}°): only the shear wave enters. This is the clean window angle probes use.`; cls = "good"; }
+    else { status = `Past the 2nd critical angle (${fmt(c2)}°): nothing enters the part. The energy runs along the surface.`; cls = "bad"; }
+    info.replaceChildren(el("p",{class:"status " + cls, style:"margin:0"}, status),
+      el("div",{class:"readout"}, el("div",{}, el("b",{}, fmt(c1)+"°"), el("span",{}, "1st critical angle")), el("div",{}, el("b",{}, fmt(c2)+"°"), el("span",{}, "2nd critical angle")),
+        el("div",{}, el("b",{}, sS < 1 ? fmt(Math.asin(sS)*180/Math.PI)+"°" : "—"), el("span",{}, "shear angle in part"))),
+      el("p",{class:"note mono",style:"margin:0"}, `sin θ₂ = (v₂ / v₁) · sin θ₁ = (${vS} / ${v1}) · sin ${st.inc}° = ${sS.toFixed(3)}`));
+  };
+  stage.append(fig,
+    slider("snell-inc", "Incident angle", 0, 80, 0.5, st.inc, "°", v => { st.inc = v; draw(); }),
+    el("div",{class:"row"}, el("label",{for:"snell-m1"},"From"), selectBox("snell-m1", Object.keys(MEDIA1), st.m1, v => { st.m1 = v; draw(); }), el("label",{for:"snell-m2"},"into"), selectBox("snell-m2", Object.keys(MEDIA2), st.m2, v => { st.m2 = v; draw(); })),
+    info);
+  draw();
+}
+function buildBeam(stage){
+  const st = LS.beam, fig = el("div"), info = el("div",{style:"display:grid;gap:8px"});
+  const V = {"Steel":5.92, "Aluminum":6.32, "Water":1.48};
+  const draw = () => {
+    const v = V[st.mat], lam = v/st.f, a = st.D/2, N = st.D*st.D/(4*lam), s6 = Math.min(0.99, 0.51*lam/st.D), g6 = Math.asin(s6);
+    const zmax = Math.max(3*N, 20), W=340, H=262, x0=26, x1=330, top=12, mid=88, bot=236, sx = (x1-x0)/zmax, half = 70;
+    const sy = half/Math.max(a + zmax*Math.tan(g6), a*1.2);
+    const pts = []; const lo = []; for (let i=0;i<=120;i++){ const z = i/120*zmax; const r = z < N ? a - (a*0.5)*(z/N) : a*0.5 + (z-N)*Math.tan(g6); pts.push(`${(x0+z*sx).toFixed(1)},${(mid - r*sy).toFixed(1)}`); lo.push(`${(x0+z*sx).toFixed(1)},${(mid + r*sy).toFixed(1)}`); }
+    let g = `<polygon points="${pts.join(" ")} ${lo.reverse().join(" ")}" fill="var(--signal)" fill-opacity=".22" stroke="var(--signal)" stroke-width="1.4"/>`;
+    g += `<rect x="${x0-14}" y="${mid - a*sy}" width="12" height="${2*a*sy}" fill="var(--wedge)"/>`;
+    g += `<line x1="${x0+N*sx}" y1="${top}" x2="${x0+N*sx}" y2="${bot}" stroke="var(--accent)" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${x0+N*sx+4}" y="${top+12}" fill="var(--accent)" font-size="12" font-weight="700">N = ${fmt(N)} mm</text>`;
+    g += `<text x="${x0+ (N*sx)/2}" y="${mid+half+16}" fill="var(--muted)" font-size="11" text-anchor="middle">near field</text><text x="${x0+N*sx + (x1-x0-N*sx)/2}" y="${mid+half+16}" fill="var(--muted)" font-size="11" text-anchor="middle">far field</text>`;
+    const py = []; const k = 2*Math.PI/lam; for (let i=1;i<=400;i++){ const z = i/400*zmax; const p = Math.abs(2*Math.sin(k/2*(Math.sqrt(a*a+z*z)-z))); py.push(`${(x0+z*sx).toFixed(1)},${(bot - p/2*58).toFixed(1)}`); }
+    g += `<line x1="${x0}" y1="${bot}" x2="${x1}" y2="${bot}" stroke="var(--line)"/><polyline points="${py.join(" ")}" fill="none" stroke="var(--bad)" stroke-width="1.4"/><text x="${x1}" y="${bot+16}" fill="var(--bad)" font-size="11" text-anchor="end">on-axis pressure</text>`;
+    fig.replaceChildren(svgEl(`<svg class="sim" viewBox="0 0 ${W} ${H}" role="img" aria-label="Beam with near field ${fmt(N)} mm" font-family="Atkinson Hyperlegible, system-ui, sans-serif">${g}</svg>`));
+    info.replaceChildren(el("div",{class:"readout"}, el("div",{}, el("b",{}, fmt(lam,2)+" mm"), el("span",{}, "wavelength λ")), el("div",{}, el("b",{}, fmt(N)+" mm"), el("span",{}, "near field N")), el("div",{}, el("b",{}, fmt(g6*180/Math.PI)+"°"), el("span",{}, "−6 dB half-angle"))),
+      el("p",{class:"note",style:"margin:0"}, "Inside the near field the pressure jumps up and down (red), so echo height there is unreliable for sizing. Raise the frequency or the diameter: the near field gets longer and the beam narrower."),
+      el("p",{class:"note mono",style:"margin:0"}, `N = D²·f / (4v) = ${st.D}² × ${st.f} / (4 × ${v}) = ${fmt(N)} mm`));
+  };
+  stage.append(fig,
+    slider("beam-f", "Frequency", 1, 10, 0.25, st.f, "MHz", v => { st.f = v; draw(); }),
+    slider("beam-d", "Diameter", 6, 25, 0.5, st.D, "mm", v => { st.D = v; draw(); }),
+    el("div",{class:"row"}, el("label",{for:"beam-m"},"Material"), selectBox("beam-m", Object.keys(V), st.mat, v => { st.mat = v; draw(); })),
+    info);
+  draw();
+}
+function buildAngle(stage){
+  const st = LS.angle, fig = el("div"), info = el("div",{style:"display:grid;gap:8px"});
+  let sIn;
+  const draw = () => {
+    const th = st.th*Math.PI/180, c = Math.cos(th), s = Math.sin(th), T = st.T, Smax = 3*T/c;
+    st.S = Math.min(st.S, Smax); const S = st.S;
+    const skip = 2*T*Math.tan(th), xspan = Math.max(S*s, skip) * 1.12 + 10, W=340, H=220, x0=24, top=50, sc = Math.min((W-40)/xspan, (H-80)/T);
+    const X = x => x0 + x*sc, Y = d => top + d*sc;
+    const leg = Math.floor(S*c / T), u = S*c - leg*T, depth = leg % 2 === 0 ? u : T - u;
+    let g = `<rect x="${x0-14}" y="${top}" width="${W-x0}" height="${T*sc}" fill="var(--steel)" fill-opacity=".5"/>`;
+    g += `<path d="M${x0-16},${top} L${x0+14},${top} L${x0+4},${top-26} L${x0-16},${top-26} z" fill="var(--wedge)"/>`;
+    const pts = [[0,0]], legLen = T/c; let rem = S, x = 0, d = 0, down = true;
+    while (rem > 1e-9) { const take = Math.min(legLen, rem); x += take*s; d += (down ? 1 : -1)*take*c; pts.push([x, d]); rem -= take; down = !down; }
+    g += `<polyline points="${pts.map(p => X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1)).join(" ")}" fill="none" stroke="var(--signal)" stroke-width="2.5"/>`;
+    for (let k=1; k*skip/2 <= xspan; k++) g += `<line x1="${X(k*skip/2)}" y1="${k%2 ? Y(T) : top}" x2="${X(k*skip/2)}" y2="${(k%2 ? Y(T) : top) + (k%2 ? 8 : -8)}" stroke="var(--muted)"/><text x="${X(k*skip/2)}" y="${k%2 ? Y(T)+20 : top-12}" fill="var(--muted)" font-size="10" text-anchor="middle">${k%2 ? "½ skip" : "skip"}</text>`;
+    const end = pts[pts.length-1];
+    g += `<circle cx="${X(end[0])}" cy="${Y(end[1])}" r="6" fill="var(--bad)"/><line x1="${X(end[0])}" y1="${top}" x2="${X(end[0])}" y2="${Y(end[1])}" stroke="var(--accent)" stroke-dasharray="3 3" stroke-width="1.4"/>`;
+    g += `<text x="${x0-10}" y="${top+16}" fill="var(--ink)" font-size="12" font-weight="700">${st.th}°</text><text x="${W-6}" y="${Y(T)-6}" fill="var(--ink)" font-size="11" text-anchor="end">T = ${T} mm</text>`;
+    fig.replaceChildren(svgEl(`<svg class="sim" viewBox="0 0 ${W} ${H}" role="img" aria-label="Angle-beam path" font-family="Atkinson Hyperlegible, system-ui, sans-serif">${g}</svg>`));
+    info.replaceChildren(el("div",{class:"readout"}, el("div",{}, el("b",{}, fmt(depth)+" mm"), el("span",{}, "true depth")), el("div",{}, el("b",{}, fmt(S*s)+" mm"), el("span",{}, "surface distance")), el("div",{}, el("b",{}, `leg ${leg+1}`), el("span",{}, leg ? "after the bounce" : "before the bounce"))),
+      el("p",{class:"note mono",style:"margin:0"}, leg === 0 ? `depth = S·cos θ = ${fmt(S)} × cos ${st.th}° = ${fmt(depth)} mm` : leg === 1 ? `S·cos θ = ${fmt(S*c)} > T, so depth = 2T − S·cos θ = ${fmt(depth)} mm` : `depth = S·cos θ − 2T = ${fmt(depth)} mm (3rd leg)`),
+      el("p",{class:"note",style:"margin:0"}, `Full skip = 2T·tan θ = ${fmt(skip)} mm. Every time the beam hits a surface, the depth reading folds back.`));
+    if (sIn) { sIn.max = Smax.toFixed(0); }
+  };
+  const sRow = slider("ang-s", "Sound path", 0, Math.round(3*st.T/Math.cos(st.th*Math.PI/180)), 0.5, st.S, "mm", v => { st.S = v; draw(); });
+  sIn = sRow.querySelector("input");
+  stage.append(fig,
+    slider("ang-th", "Probe angle", 35, 75, 1, st.th, "°", v => { st.th = v; draw(); sRow.querySelector("output").textContent = `${fmt(st.S)} mm`; }),
+    slider("ang-t", "Thickness", 10, 60, 1, st.T, "mm", v => { st.T = v; draw(); sRow.querySelector("output").textContent = `${fmt(st.S)} mm`; }),
+    sRow, info);
+  draw();
+}
+
+/* =============== TEAM =============== */
+const EXAMPLE_TEAM = (() => {
+  const people = [["A. Rivera",.85,[2,6]],["J. Chen",.75,[30,60]],["M. Okafor",.30,[0,3]],["S. Patel",.60,[5,20]],["D. Kowalski",.70,[50,90]],["L. Martin",.45,[1,10]]];
+  let seed = 7; const r = () => { seed = (seed*16807) % 2147483647; return seed/2147483647; };
+  return people.map(([name, skill, [d0,d1]], i) => { const m={}, t={}, a={};
+    for (const x of TOPICS) { m[x] = clamp(skill + (r()-.5)*.35, .12, .97); t[x] = Date.now() - (d0 + r()*(d1-d0))*DAY; a[x] = 3 + Math.floor(r()*20); }
+    return {id:"ex"+i, name, m, t, a, wk:weekId(), wkXp: Math.round((d0 < 7 ? 160 : 20) + r()*220*(skill)), streak: d0 < 3 ? 2 + Math.floor(r()*9) : 0,
+            lastActive: Date.now() - d0*DAY, cert: todayStr(new Date(Date.now() + [400,45,700,160,25,300][i]*DAY)), level:"II"}; });
+})();
+function meAsMember(){ return Object.assign({id: TEAM ? TEAM.uid : "me", name:"You", isMe:true}, memberBody()); }
+function teamMembers(){
+  if (TEAM) { const list = TEAMDATA.members.slice(); if (!list.some(m => m.id === TEAM.uid)) list.push(meAsMember()); return list.map(m => m.id === TEAM.uid ? Object.assign(m, meAsMember()) : m); }
+  return EXAMPLE_TEAM.concat([meAsMember()]);
+}
+function nameOf(m){ return m.isMe ? "You" : (m.name || TEAMDATA.names[m.id] || "Team member"); }
+async function resolveNames(ids){ if (!TEAM) return; try { const ps = await TEAM.user.profiles(ids); let changed = false; for (const id of ids) { const n = ps[id]?.name || ""; if (n && TEAMDATA.names[id] !== n) { TEAMDATA.names[id] = n; changed = true; } } if (changed && tab === "team") render(); } catch(e) {} }
+function teamView(){
+  const members = teamMembers(), manager = TEAM ? TEAM.manager : true;
+  if (TEAM) resolveNames(members.filter(m => !m.isMe).map(m => m.id));
+  const nodes = [el("h2",{}, TEAM ? "Your team" : "Team")];
+  if (!TEAM) nodes.push(el("div",{class:"banner"}, el("strong",{},"Example team. "), "This demo shows made-up people. In the team version, each person signs in with Claude and this page shows your real team, live."));
+  else if (!manager) nodes.push(el("p",{class:"note"}, "Your manager can see your topic confidence, activity and certification date here, to plan training."));
+  const wk = weekId();
+  const lb = members.map(m => ({m, xp: m.wk === wk ? (m.wkXp||0) : 0})).sort((a,b) => b.xp - a.xp);
+  nodes.push(el("h3",{class:"sec"}, "This week's leaderboard"), el("div",{class:"lb"}, ...lb.slice(0, 8).map((x,i) => el("div",{class:"lbrow" + (x.m.isMe ? " me" : "")}, el("span",{class:"rk"}, String(i+1)), el("span",{}, nameOf(x.m), x.m.streak ? el("span",{class:"note"}, `  ·  ${x.m.streak}-day streak`) : null), el("b",{}, `${x.xp} XP`)))));
+  if (manager) {
+    const ts = topicsFor("III");
+    const tbl = el("table",{class:"team"});
+    tbl.append(el("thead",{}, el("tr",{}, el("th",{class:"name"}, "Name"), ...ts.map(t => el("th",{class:"v", title:t}, SHORT[t] || t)), el("th",{}, "Due"), el("th",{}, "Active"), el("th",{}, "Cert"))));
+    const tb = el("tbody");
+    for (const m of members) {
+      const cells = ts.map(t => { const v = effOf(m.m?.[t] ?? BKT.init, m.t?.[t] || 0); return el("td",{class:"cell", style:`background:${confColor(v)}`, title:`${t}: ${pct(v)}`}, String(Math.round(v*100))); });
+      const due = ts.filter(t => isDue(m.m?.[t] ?? 0, m.t?.[t] || 0, m.a?.[t] || 0)).length;
+      const act = m.lastActive ? daysSince(m.lastActive) : null;
+      const cert = m.cert ? dayNum(m.cert) - dayNum(todayStr()) : null;
+      tb.append(el("tr",{}, el("td",{class:"name", "data-uid": m.id}, nameOf(m)), ...cells,
+        el("td",{style: due ? "color:var(--bad);font-weight:700" : ""}, String(due)),
+        el("td",{style: act != null && act > 14 ? "color:var(--bad);font-weight:700" : ""}, act == null ? "—" : act === 0 ? "today" : `${act}d`),
+        el("td",{style: cert != null && cert <= 90 ? "color:var(--bad);font-weight:700" : ""}, cert == null ? "—" : cert < 0 ? "expired" : `${cert}d`)));
+    }
+    tbl.append(tb);
+    const flagged = members.filter(m => { const act = m.lastActive ? daysSince(m.lastActive) : 999; const cert = m.cert ? dayNum(m.cert) - dayNum(todayStr()) : 999; return act > 14 || cert <= 90; });
+    nodes.push(el("h3",{class:"sec"}, "Manager view: confidence by topic"),
+      el("div",{class:"grid-wrap"}, tbl),
+      el("div",{class:"legend"}, el("span",{}, el("i",{style:"background:var(--good)"}), "70%+"), el("span",{}, el("i",{style:"background:var(--accent)"}), "40–69%"), el("span",{}, el("i",{style:"background:var(--bad)"}), "below 40%"), el("span",{}, "Due = topics fading · Active = days since last practice · Cert = days to recertification")));
+    if (flagged.length) nodes.push(el("div",{class:"panel"}, el("strong",{}, "Needs attention"), ...flagged.map(m => { const act = m.lastActive ? daysSince(m.lastActive) : null; const cert = m.cert ? dayNum(m.cert) - dayNum(todayStr()) : null;
+      const why = [act != null && act > 14 ? `no practice for ${act} days` : "", cert != null && cert <= 90 ? (cert < 0 ? "certification expired" : `recertification in ${cert} days`) : ""].filter(Boolean).join(", ");
+      return el("div",{class:"review"}, el("span",{}, nameOf(m)), el("span",{class:"note"}, why)); })));
+  }
+  nodes.push(...procSection(manager));
+  return nodes;
+}
+
+/* procedures UI */
+let procState = {busy:false, msg:"", ctl:null, title:"", text:"", confirmDel:null};
+function procSection(manager){
+  const list = procList();
+  const nodes = [el("h3",{class:"sec"}, "Our procedures")];
+  nodes.push(el("div",{class:"panel",style:"gap:0"}, ...list.map(p => { const pm = S.pm[p.id]; const v = pm ? effOf(pm.m, pm.t) : BKT.init;
+    const canDel = !p.example && ((TEAM && TEAM.manager && !p.local) || p.local);
+    return el("div",{class:"proc"}, el("strong",{}, p.title), p.summary ? el("span",{class:"note"}, p.summary) : null,
+      el("div",{class:"bar"}, el("span",{class:"note"}, `${p.questions.length} questions`), el("span",{class:"n"}, pct(v)), el("div",{class:"track"}, el("div",{class:"fill",style:`width:${Math.round(v*100)}%;background:${confColor(v)}`}))),
+      el("div",{class:"row"}, el("button",{class:"btn primary", onclick:()=>{ cur = {q: procQuestion(p), chosen:null, hint:false, mode:"proc", procId:p.id}; tab="practice"; sub="practice"; render(); window.scrollTo(0,0); }}, "Practice this procedure"),
+        canDel ? (procState.confirmDel === p.id
+          ? el("span",{class:"row"}, el("button",{class:"btn",onclick:()=>{procState.confirmDel=null;render();}},"Keep"), el("button",{class:"btn",style:"border-color:var(--bad);color:var(--bad)",onclick:()=>deleteProc(p)},"Delete"))
+          : el("button",{class:"btn",onclick:()=>{procState.confirmDel=p.id;render();}},"Delete")) : null));
+  })));
+  const canGen = !!sample && (!TEAM || TEAM.manager);
+  if (!canGen) { nodes.push(el("p",{class:"note"}, TEAM ? "Your manager adds procedures here. Claude turns each one into practice questions for the team." : "In the team version, a manager pastes a procedure here and Claude writes practice questions from it for everyone.")); return nodes; }
+  const title = el("input",{type:"text", id:"proc-title", placeholder:"Procedure name, e.g. UT-PR-12 Rev 3", style:"width:100%", oninput:e => procState.title = e.target.value}); title.value = procState.title;
+  const ta = el("textarea",{id:"proc-text", placeholder:"Paste the procedure text here (scope, equipment, calibration, scanning, recording, acceptance…)", style:"min-height:140px", oninput:e => procState.text = e.target.value}); ta.value = procState.text;
+  const file = el("input",{type:"file", id:"proc-file", accept:".txt,.md,text/plain", onchange: async e => { const f = e.target.files[0]; if (!f) return; try { procState.text = (await f.text()).slice(0, 60000); if (!procState.title) procState.title = f.name.replace(/\.[^.]+$/,""); render(); } catch(err) { procState.msg = "That file couldn't be read. Paste the text instead."; render(); } }});
+  nodes.push(el("div",{class:"panel"}, el("strong",{}, "Add a procedure"),
+    el("p",{class:"note",style:"margin:0"}, TEAM ? "Claude reads it and writes questions the whole team can practice." : "Claude reads it and writes practice questions. They're saved on this device."),
+    title, ta, el("label",{class:"note", for:"proc-file"}, "Or load a .txt file: ", file),
+    procState.busy ? el("div",{class:"thinking"}, el("span",{class:"dot"}), "Claude is writing questions…", el("button",{class:"btn",style:"margin-left:auto;min-height:36px;padding:4px 12px",onclick:()=>procState.ctl?.abort()},"Stop"))
+      : el("button",{class:"btn primary", style:"justify-self:start", onclick: generateProc}, "Write questions with Claude"),
+    procState.msg ? el("p",{class:"note",style:"margin:0;color:var(--bad)"}, procState.msg) : null));
+  return nodes;
+}
+async function generateProc(){
+  const text = (procState.text || "").trim(), title = (procState.title || "").trim() || "Untitled procedure";
+  if (text.length < 200) { procState.msg = "Paste at least a few paragraphs of the procedure first."; render(); return; }
+  procState.busy = true; procState.msg = ""; procState.ctl = new AbortController(); render();
+  const prompt = `You write practice questions for ultrasonic testing (UT) technicians from their company's own procedure.
+Read the procedure below and write 8 multiple-choice questions that check the requirements a technician must know on the job: calibration, sensitivity, scanning, recording levels, acceptance criteria, and any numbers or limits.
+Rules: use only facts stated in the procedure; refer to section numbers when the text has them; every question has exactly 4 options and one correct answer; each wrong option should be a realistic mistake, with a one-sentence reason it is wrong; the explanation of the right answer is plain English, under 50 words.
+Reply with only this JSON:
+{"summary": "one sentence on what the procedure covers",
+ "questions": [{"q": "question", "options": ["A","B","C","D"], "answer": 0, "why": "why the right answer is right", "mistakes": ["reason option 0 is wrong, or empty for the right one", "...", "...", "..."]}]}
+
+Procedure title: ${title}
+Procedure text:
+"""
+${text.slice(0, 40000)}
+"""`;
+  try {
+    const r = await sample.json(prompt, {signal: procState.ctl.signal, cache:false, modelTier:"default"});
+    const qs = (r?.questions || []).filter(q => q && typeof q.q === "string" && Array.isArray(q.options) && q.options.length === 4 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < 4)
+      .map(q => ({q: String(q.q), options: q.options.map(String), answer: q.answer, why: String(q.why || ""), mistakes: (q.mistakes || []).map(String).slice(0,4)}));
+    if (qs.length < 3) throw {code:"invalid_json"};
+    const proc = {title, summary: String(r.summary || ""), questions: qs, createdAt: Date.now()};
+    if (TEAM && TEAM.manager) { await TEAM.db.collection("procedures").add(Object.assign({by: TEAM.uid}, proc)); }
+    else { S.procs = [Object.assign({id: "local-" + Date.now(), local:true}, proc), ...(S.procs || [])]; save(); }
+    procState = {busy:false, msg:"", ctl:null, title:"", text:"", confirmDel:null};
+    toast(`${qs.length} questions added`);
+  } catch(e) {
+    procState.busy = false;
+    if (e?.code !== "cancelled") procState.msg = e?.code === "quota_exceeded" ? "The team storage is full. Delete an old procedure first." : (ERR[e?.code] || "Claude couldn't write questions from that text. Try a shorter or clearer section.");
+  }
+  render();
+}
+async function deleteProc(p){
+  procState.confirmDel = null;
+  if (p.local) { S.procs = (S.procs||[]).filter(x => x.id !== p.id); save(); }
+  else if (TEAM) { try { await TEAM.db.doc("procedures/" + p.id).delete(); } catch(e) { toast("Couldn't delete it. Try again."); } }
+  render();
+}
+
+/* =============== ASK =============== */
 let askBox = null, askDraft = "", faqOpen = null;
 function askView(){
   const ta = el("textarea",{id:"ask-q",placeholder:"Ask any UT question, e.g. why does couplant matter?", oninput:e=>{askDraft=e.target.value;}});
@@ -477,14 +1018,16 @@ function askView(){
     askBox && askBox.childNodes.length ? el("div",{class:"panel"}, askBox) : null,
     el("h3",{class:"sec"}, "Common questions"),
     faqList,
-    !sample ? el("p",{class:"note"}, "To ask your own questions, open this page while signed in to Claude.") : null];
+    !sample ? el("p",{class:"note"}, "To ask your own questions, open the coach inside Claude.") : null];
 }
 
+/* =============== render =============== */
 function render(){
   renderTabs(); drawGauge();
-  const v = {practice:practiceView, exam:examView, progress:progressView, formulas:formulasView, ask:askView}[tab]();
+  const v = {today:todayView, practice:practiceView, lab:labView, team:teamView, ask:askView}[tab]();
   $("#view").replaceChildren(...v.filter(Boolean));
 }
 render();
+
 </script>
 </body></html>
