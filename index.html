@@ -165,6 +165,7 @@ select,input[type=date],input[type=text]{font:inherit;color:var(--ink);backgroun
 .proc:last-child{border-bottom:0}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;z-index:20;box-shadow:0 4px 16px rgb(0 0 0 / .25)}
 .xp{font-family:var(--mono);color:var(--good);font-weight:500}
+.tabdot{position:absolute;top:2px;left:calc(50% + 6px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;line-height:16px;font-family:var(--mono)}
 </style>
 
 
@@ -500,7 +501,7 @@ async function askClaude(prompt, box, ctl){
 const FIREBASE_CONFIG = (location.hostname.endsWith("github.io") || /[?&]team=1/.test(location.search)) ? {"apiKey":"AIzaSyBxlitIzJqi1nrlwJGYvcdeY69e_71DRtg","authDomain":"ut-study-coach.firebaseapp.com","projectId":"ut-study-coach","storageBucket":"ut-study-coach.firebasestorage.app","messagingSenderId":"64982170598","appId":"1:64982170598:web:f7af7a05f014fd2dd3b427"} : null;   // team sign-in runs on the public website
 const FBV = "10.12.2";
 let TEAM = null;                               // {uid, email, name, manager} once a listed person signs in
-const TEAMDATA = {members:[], board:[], procs:[], access:{managers:[], members:[]}};
+const TEAMDATA = {members:[], board:[], procs:[], requests:[], access:{managers:[], members:[]}};
 let AUTH = {state: FIREBASE_CONFIG ? "loading" : "off", user:null, msg:""};   // off | loading | signedout | denied | in
 let FB = null, unsubs = [];
 let syncChain = Promise.resolve(), syncTimer = null;
@@ -513,6 +514,7 @@ function memberBody(){
 function syncTeam(){
   if (!TEAM || !FB) return; clearTimeout(syncTimer);
   syncTimer = setTimeout(() => {
+    if (!TEAM) return;                                   // signed out before the save ran
     const body = Object.assign(memberBody(), {name: TEAM.name, email: TEAM.email});
     const lb = {name: TEAM.name, wk: S.wk, wkXp: S.wkXp, streak: S.streak, lastDay: S.lastDay, lastActive: S.lastActive};
     syncChain = syncChain.then(() => Promise.all([FB.db.collection("members").doc(TEAM.uid).set(body), FB.db.collection("leaderboard").doc(TEAM.uid).set(lb)])).catch(() => {});
@@ -535,7 +537,7 @@ function mergeRemote(x){
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
 }
 async function onAuth(user){
-  unsubs.forEach(u => u()); unsubs = []; TEAM = null; TEAMDATA.members = []; TEAMDATA.board = []; TEAMDATA.procs = [];
+  unsubs.forEach(u => u()); unsubs = []; TEAM = null; TEAMDATA.members = []; TEAMDATA.board = []; TEAMDATA.procs = []; TEAMDATA.requests = [];
   if (!user) { AUTH = {state:"signedout", user:null, msg:""}; render(); return; }
   AUTH = {state:"loading", user, msg:""}; render();
   const email = String(user.email || "").toLowerCase();
@@ -543,7 +545,16 @@ async function onAuth(user){
   try { const snap = await FB.db.collection("config").doc("team").get(); access = snap.exists ? snap.data() : null; } catch(e) { access = null; }   // people not on the list can't read it
   if (!access) { try { await FB.db.collection("config").doc("team").set({managers:[email], members:[]}); access = {managers:[email], members:[]}; } catch(e) {} }   // first sign-in by the owner creates the team list
   const managers = lower(access && access.managers), members = lower(access && access.members);
-  if (!access || (!managers.includes(email) && !members.includes(email))) { AUTH = {state:"denied", user, msg:""}; render(); return; }
+  if (!access || (!managers.includes(email) && !members.includes(email))) {
+    AUTH = {state:"denied", user, msg:"", req:null}; render();
+    // watch my own join request: when a manager approves it, sign me straight in
+    unsubs.push(FB.db.collection("requests").doc(user.uid).onSnapshot(s => {
+      const r = s.exists ? s.data() : null;
+      if (r && r.status === "approved") { unsubs.forEach(u => u()); unsubs = []; FB.db.collection("requests").doc(user.uid).delete().catch(()=>{}); onAuth(user); return; }
+      if (AUTH.state === "denied") { AUTH.req = r; render(); }
+    }, () => {}));
+    return;
+  }
   TEAM = {uid: user.uid, email, name: user.displayName || email.split("@")[0], manager: managers.includes(email)};
   TEAMDATA.access = {managers, members};
   AUTH = {state:"in", user, msg:""};
@@ -552,6 +563,7 @@ async function onAuth(user){
   unsubs.push(FB.db.collection("leaderboard").onSnapshot(q => { TEAMDATA.board = q.docs.map(d => Object.assign({id:d.id}, d.data())); live(); }, () => {}));
   unsubs.push(FB.db.collection("procedures").onSnapshot(q => { TEAMDATA.procs = q.docs.map(d => Object.assign({id:d.id}, d.data())).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); live(); }, () => {}));
   unsubs.push(FB.db.collection("config").doc("team").onSnapshot(s => { if (s.exists) { const a = s.data(); TEAMDATA.access = {managers: lower(a.managers), members: lower(a.members)}; live(); } }, () => {}));
+  if (TEAM.manager) unsubs.push(FB.db.collection("requests").onSnapshot(q => { TEAMDATA.requests = q.docs.map(d => Object.assign({id:d.id}, d.data())).filter(r => r.status === "pending").sort((a,b)=>(a.at||0)-(b.at||0)); renderTabs(); live(); }, () => {}));
   if (TEAM.manager) unsubs.push(FB.db.collection("members").onSnapshot(q => { TEAMDATA.members = q.docs.map(d => Object.assign({id:d.id}, d.data())); live(); }, () => {}));
   syncTeam(); render();
 }
@@ -565,7 +577,18 @@ async function signIn(){
     else if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request") { AUTH.msg = "Sign-in didn't work. Try again, or open the page in Safari or Chrome."; render(); }
   }
 }
-function signOut(){ if (FB) FB.auth.signOut(); }
+function signOut(){ clearTimeout(syncTimer); if (FB) FB.auth.signOut(); }
+async function requestJoin(){
+  const u = AUTH.user; if (!u) return;
+  try { await FB.db.collection("requests").doc(u.uid).set({email: String(u.email||"").toLowerCase(), name: u.displayName || String(u.email||"").split("@")[0], at: Date.now(), status:"pending"}); toast("Request sent to your manager"); }
+  catch(e) { toast("Couldn't send the request. Try again."); }
+}
+async function answerRequest(r, ok){
+  try {
+    if (ok) { await changeAccess("members", String(r.email).toLowerCase(), false); await FB.db.collection("requests").doc(r.id).update({status:"approved"}); toast(`${r.name || r.email} is on the team`); }
+    else { await FB.db.collection("requests").doc(r.id).update({status:"declined"}); toast("Request declined"); }
+  } catch(e) { toast("Couldn't update the request. Try again."); }
+}
 async function changeAccess(list, email, remove){
   const fv = firebase.firestore.FieldValue, ref = FB.db.collection("config").doc("team");
   try { await ref.update({[list]: remove ? fv.arrayRemove(email) : fv.arrayUnion(email)}); }
@@ -598,7 +621,9 @@ const LABELS = {today:"Today", practice:"Practice", lab:"Lab", team:"Team", ask:
 function renderTabs(){
   $("#tabs").replaceChildren(...Object.keys(LABELS).map(k => {
     const b = el("button",{"aria-current": k===tab ? "page" : null, onclick:()=>{ tab=k; render(); window.scrollTo(0,0); }});
-    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`; b.append(LABELS[k]); return b; }));
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`; b.append(LABELS[k]);
+    if (k === "team" && TEAM && TEAM.manager && TEAMDATA.requests.length) { b.style.position = "relative"; b.append(el("span",{class:"tabdot","aria-label":`${TEAMDATA.requests.length} join requests`}, String(TEAMDATA.requests.length))); }
+    return b; }));
 }
 function levelPicker(){
   return el("div",{class:"level",role:"group","aria-label":"Exam level"}, ...LEVELS.map(l => el("button",{"aria-pressed": String(S.level===l), onclick:()=>{ S.level=l; save(); cur=null; render(); }}, "Level " + l)));
@@ -974,9 +999,16 @@ function googleMark(){ return svgEl(`<svg viewBox="0 0 48 48" width="18" height=
 function signInCard(){
   if (AUTH.state === "off") return el("div",{class:"banner"}, el("strong",{},"Example team. "), AUTH.msg || "This demo shows made-up people. In the team version, everyone signs in with their Google (Gmail) account and this page shows your real team, live.");
   if (AUTH.state === "loading") return el("div",{class:"panel"}, el("div",{class:"thinking"}, el("span",{class:"dot"}), "Checking your team…"));
-  if (AUTH.state === "denied") return el("div",{class:"panel"}, el("strong",{}, "You're signed in, but not on the team list yet"),
-    el("p",{style:"margin:0"}, `Ask your manager to add `, el("b",{}, AUTH.user && AUTH.user.email || "your email"), " in the Team tab. Until then, your progress stays on this device."),
-    el("button",{class:"btn", style:"justify-self:start", onclick: signOut}, "Use a different account"));
+  if (AUTH.state === "denied") {
+    const r = AUTH.req, em = el("b",{}, AUTH.user && AUTH.user.email || "your email");
+    const msg = !r ? el("p",{style:"margin:0"}, "You're signed in as ", em, ". Ask to join and your manager will see your request in the Team tab. Until then, your progress stays on this device.")
+      : r.status === "declined" ? el("p",{style:"margin:0"}, "Your manager didn't approve this request. If you think that's a mistake, talk to them, or send the request again.")
+      : el("p",{style:"margin:0"}, "Request sent. You'll be let in as soon as your manager approves it, no need to sign in again. Keep practicing meanwhile.");
+    return el("div",{class:"panel"}, el("strong",{}, r && r.status === "pending" ? "Waiting for your manager" : "You're not on the team list yet"), msg,
+      el("div",{class:"row"},
+        !r || r.status === "declined" ? el("button",{class:"btn primary", onclick: requestJoin}, r ? "Ask again" : "Ask to join the team") : null,
+        el("button",{class:"btn", onclick: signOut}, "Use a different account")));
+  }
   if (AUTH.state === "signedout") return el("div",{class:"panel"}, el("strong",{}, "Join your team"),
     el("p",{style:"margin:0"}, "Sign in with your Google (Gmail) account to save your progress to your team, appear on the leaderboard and practice your company's procedures."),
     el("button",{class:"btn", style:"justify-self:start;display:inline-flex;gap:10px;align-items:center", onclick: signIn}, googleMark(), "Sign in with Google"),
@@ -1021,11 +1053,16 @@ function accessPanel(){
     email === TEAM.email ? el("span",{class:"note"}, "you") : el("span",{class:"row",style:"gap:6px;flex-wrap:nowrap"},
       joined.has(email) ? null : btn("Invite", () => sendInvite(email, list === "managers")),
       btn("Remove", () => changeAccess(list, email, true))));
-  return el("div",{class:"panel",style:"gap:6px"}, el("strong",{}, "Who's on the team"),
+  const reqs = TEAMDATA.requests.length ? el("div",{class:"panel",id:"team-reqs",style:"gap:6px;border-color:var(--accent)"}, el("strong",{}, `Requests to join (${TEAMDATA.requests.length})`),
+    el("p",{class:"note",style:"margin:0"}, "These people signed in with Google and asked to join. Approve adds them to the team straight away."),
+    ...TEAMDATA.requests.map(r => el("div",{class:"review",style:"grid-template-columns:minmax(0,1fr) auto;align-items:center"},
+      el("span",{style:"min-width:0;overflow-wrap:anywhere"}, el("b",{}, r.name || ""), el("br"), el("span",{class:"note"}, r.email), r.at ? el("span",{class:"note"}, ` · ${daysSince(r.at) === 0 ? "today" : daysSince(r.at) + "d ago"}`) : null),
+      el("span",{class:"row",style:"gap:6px;flex-wrap:nowrap"}, el("button",{class:"btn primary",style:"min-height:34px;padding:4px 10px",onclick:()=>answerRequest(r, true)}, "Approve"), btn("Decline", () => answerRequest(r, false)))))) : null;
+  return el("div",{style:"display:grid;gap:12px"}, reqs, el("div",{class:"panel",style:"gap:6px"}, el("strong",{}, "Who's on the team"),
     el("p",{class:"note",style:"margin:0"}, "Only these Google accounts can sign in. When you add someone, an invitation email opens in your Gmail, ready to send. Use Invite to send it again."),
     ...TEAMDATA.access.managers.map(e => row(e, "managers")), ...TEAMDATA.access.members.filter(e => !TEAMDATA.access.managers.includes(e)).map(e => row(e, "members")),
     el("div",{class:"row"}, add, el("button",{class:"btn primary", onclick:()=>doAdd(false)}, "Add & invite")),
-    el("button",{class:"btn",style:"justify-self:start;min-height:34px;padding:4px 10px",onclick:()=>doAdd(true)}, "Add as manager"));
+    el("button",{class:"btn",style:"justify-self:start;min-height:34px;padding:4px 10px",onclick:()=>doAdd(true)}, "Add as manager")));
 }
 function teamView(){
   const members = teamMembers(), manager = TEAM ? TEAM.manager : true;
@@ -1061,6 +1098,7 @@ function teamView(){
       const why = [act != null && act > 14 ? `no practice for ${act} days` : "", cert != null && cert <= 90 ? (cert < 0 ? "certification expired" : `recertification in ${cert} days`) : ""].filter(Boolean).join(", ");
       return el("div",{class:"review"}, el("span",{}, nameOf(m)), el("span",{class:"note"}, why)); })));
     if (TEAM) nodes.push(accessPanel());
+    if (TEAM && TEAMDATA.requests.length) nodes.splice(card ? 3 : 2, 0, el("div",{class:"banner"}, el("strong",{}, `${TEAMDATA.requests.length} ${TEAMDATA.requests.length === 1 ? "person wants" : "people want"} to join. `), el("a",{href:"#team-reqs", onclick:e=>{ e.preventDefault(); $("#team-reqs") && $("#team-reqs").scrollIntoView({behavior:"smooth", block:"center"}); }}, "Review requests")));
   }
   nodes.push(...procSection(manager));
   return nodes;
